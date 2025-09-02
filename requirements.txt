@@ -1,0 +1,104 @@
+ffmpeg -i "input.mp4" ^
+-filter_complex "frei0r=glitch0r:0.2|0.238|0.181|0.238" ^
+-pix_fmt yuv420p -c:a copy outputglitch.mp4
+
+
+ffmpeg -i "test.mp4" ^ -filter_complex "frei0r=glitch0r:0.2|0.238|0.181|0.238" ^ -pix_fmt yuv420p -c:a copy outputglitch.mp4
+
+
+ffmpeg -i "test.mp4" -filter_complex "[0:v]setsar=1,split=6[base][s1][s2][s3][s4][s5]; [s1]crop=iw:ih/5:0:0[s1c]; [s2]crop=iw:ih/5:0:ih/5[s2c]; [s3]crop=iw:ih/5:0:2*ih/5[s3c]; [s4]crop=iw:ih/5:0:3*ih/7[s4c]; [s5]crop=iw:ih/5:0:4*ih/5[s5c]; [base][s1c]overlay=x='(if(gte(mod(t,0.80),0.65),0,1))*10*sin(40*PI*t)':y=0:shortest=1[tmp1]; [tmp1][s2c]overlay=x='(if(gte(mod(t,0.70),0.50),0,1))*(-18)*sin(28*PI*t+0.7)':y=H/5[tmp2]; [tmp2][s3c]overlay=x='(if(gte(mod(t,0.90),0.70),0,1))*12*sin(34*PI*t+1.2)':y=2*H/5[tmp3]; [tmp3][s4c]overlay=x='(if(gte(mod(t,0.60),0.45),0,1))*(-22)*sin(26*PI*t+1.9)':y=3*H/5[tmp4]; [tmp4][s5c]overlay=x='(if(gte(mod(t,1.00),0.80),0,1))*16*sin(30*PI*t+2.3)':y=4*H/5, noise=alls=18:allf=t+u[outv]" -map "[outv]" -map 0:a? -c:v libx264 -crf 18 -preset medium -c:a copy "output_lines_glitch5.mp4"
+
+ffmpeg -i "test.mp4" -filter_complex "[0:v]setsar=1,split=6[base][s1][s2][s3][s4][s5]; [s1]crop=iw:ih/15:0:0, colorchannelmixer=1:0:0:0: 0:0:0:0: 0:0:1:0: 0:0:0:1[s1c]; [s2]crop=iw:ih/15:0:ih/5, colorchannelmixer=1:0:0:0: 0:0:0:0: 0:0:1:0: 0:0:0:1[s2c]; [s3]crop=iw:ih/15:0:2*ih/5,colorchannelmixer=1:0:0:0: 0:0:0:0: 0:0:1:0: 0:0:0:1[s3c]; [s4]crop=iw:ih/25:0:3*ih/5[s4c]; [s5]crop=iw:ih/10:0:4*ih/5[s5c]; [base][s1c]overlay=x='(if(gte(mod(t,0.80),0.65),0,1))*10*sin(40*PI*t)':y=0:shortest=1[tmp1]; [tmp1][s2c]overlay=x='(if(gte(mod(t,0.70),0.50),0,1))*(-18)*sin(28*PI*t+0.7)':y=H/5[tmp2]; [tmp2][s3c]overlay=x='(if(gte(mod(t,0.90),0.70),0,1))*12*sin(34*PI*t+1.2)':y=2*H/5[tmp3]; [tmp3][s4c]overlay=x='(if(gte(mod(t,0.60),0.45),0,1))*(-22)*sin(26*PI*t+1.9)':y=3*H/5[tmp4]; [tmp4][s5c]overlay=x='(if(gte(mod(t,1.00),0.80),0,1))*16*sin(30*PI*t+2.3)':y=4*H/5, noise=alls=18:allf=t+u[outv]" -map "[outv]" -map 0:a? -c:v libx264 -crf 18 -preset medium -c:a copy "output_lines_glitch8.mp4"
+
+
+
+
+
+ffmpeg -i "test.mp4" -filter_complex "
+[0:v]setsar=1,split=6[base][s1][s2][s3][s4][s5];
+[s1]crop=iw:ih/20:0:0, colorchannelmixer=1:0:0:0: 0:0:0:0: 0:0:0:1: 0:0:0:1[s1c]; 
+[s2]crop=iw:ih/20:0:ih/15, colorchannelmixer=0:1:0:0: 0:0:0:0: 0:0:0:1: 0:0:0:1[s2c]; 
+[s3]crop=iw:ih/20:0:2*ih/15, colorchannelmixer=0:0:1:0: 0:0:0:0: 0:0:0:1: 0:0:0:1[s3c]; 
+[s4]crop=iw:ih/20:0:3*ih/10, colorchannelmixer=0.5:0.5:1:0: 0:0:0:0: 0:0:0:1: 0:0:0:1[s4c]; 
+[s5]crop=iw:ih/20:0:4*ih/25, colorchannelmixer=1:1:0:0: 0:0:0:0: 0:0:0:1: 0:0:0:1[s5c]; 
+
+[base][s1c]overlay=x='10*sin(40*PI*t)':y=0:shortest=1[tmp1]; 
+[tmp1][s2c]overlay=x='-18*sin(28*PI*t+0.7)':y=H/5[tmp2]; 
+[tmp2][s3c]overlay=x='12*sin(34*PI*t+1.2)':y=2*H/5[tmp3]; 
+[tmp3][s4c]overlay=x='-22*sin(26*PI*t+1.9)':y=3*H/5[tmp4]; 
+[tmp4][s5c]overlay=x='16*sin(30*PI*t+2.3)':y=4*H/5,noise=alls=18:allf=t+u[outv]
+" -map "[outv]" -map 0:a? -c:v libx264 -crf 18 -preset medium -c:a copy "output_lines_glitch_color.mp4"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ffmpeg -i "test.mp4" -filter_complex " [0:v]setsar=1,split=6[base][s1][s2][s3][s4][s5];
+ [s1]crop=iw:ih/20:0:0, colorchannelmixer=1:0:0:0: 0:1:0:0: 0:0:1:0: 0:0:0:1[s1c];
+ [s2]crop=iw:ih/20:0:ih/15, colorchannelmixer=1:0:0:0: 0:1:0:0: 0:0:1:0: 0:0:0:1[s2c];
+ [s3]crop=iw:ih/20:0:2*ih/15, colorchannelmixer=1:0:0:0: 0:1:0:0: 0:0:1:0: 0:0:0:1[s3c]; 
+[s4]crop=iw:ih/20:0:3*ih/10, colorchannelmixer=1:0:0:0: 0:1:0:0: 0:0:1:0: 0:0:0:1[s4c]; 
+[s5]crop=iw:ih/20:0:4*ih/25, colorchannelmixer=1:0:0:0: 0:1:0:0: 0:0:1:0: 0:0:0:1[s5c];
+
+ [base][s1c]overlay=x='10*sin(40*PI*t)':y=0:shortest=1:enable='lt(mod(t,1.0),0.15)'[tmp1]; [tmp1][s2c]overlay=x='-18*sin(28*PI*t+0.7)':y=H/5:enable='lt(mod(t,1.2),0.20)'[tmp2]; [tmp2][s3c]overlay=x='12*sin(34*PI*t+1.2)':y=2*H/5:enable='lt(mod(t,1.5),0.18)'[tmp3]; [tmp3][s4c]overlay=x='-22*sin(26*PI*t+1.9)':y=3*H/5:enable='lt(mod(t,1.8),0.22)'[tmp4]; [tmp4][s5c]overlay=x='16*sin(30*PI*t+2.3)':y=4*H/5:enable='lt(mod(t,2.0),0.20)',noise=alls=18:allf=t+u[outv] " -map "[outv]" -map 0:a? -c:v libx264 -crf 18 -preset medium -c:a copy "output_lines_glitch_flash.mp4"
+===================================================
+
+
+ffmpeg -i "test.mp4" -filter_complex " [0:v]setsar=1,scale=iw+40:ih+40,pad=iw+40:ih+40:20:20:black[basebig]; [basebig]crop=iw-40:ih-40: x='20+10*sin(2*PI*t*2)': y='20+10*sin(2*PI*t*1.3)'[base_shake]; [base_shake]split=11[base][s1][s2][s3][s4][s5][s6][s7][s8][s9][s10]; [s1] crop=iw:ih/20:0:0,        colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s1c]; [s2] crop=iw:ih/20:0:ih/15,    colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s2c]; [s3] crop=iw:ih/20:0:2*ih/30,  colorchannelmixer=1:0:2:0:0:1:0:0:2:0:1:0:2:0:0:1 [s3c]; [s4] crop=iw:ih/20:0:3*ih/10,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s4c]; [s5] crop=iw:ih/20:0:4*ih/20,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s5c]; [s6] crop=iw:ih/20:0:ih/20,    colorchannelmixer=1:0:2:0:0:1:0:0:2:0:1:0:2:0:0:1 [s6c]; [s7] crop=iw:ih/20:0:ih/30,    colorchannelmixer=1:0:2:0:0:1:0:0:2:0:1:0:2:0:0:1 [s7c]; [s8] crop=iw:ih/20:0:2*ih/15,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s8c]; [s9] crop=iw:ih/20:0:3*ih/10,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s9c]; [s10] crop=iw:ih/20:0:4*ih/22, colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s10c]; [base][s1c]overlay=x='10*sin(40*PI*t)':y=0:enable='lt(mod(t+0.1,0.3),0.15)'[tmp1]; [tmp1][s2c]overlay=x='-18*sin(28*PI*t+0.7)':y=H/5:enable='lt(mod(t+0.3,0.4),0.20)'[tmp2]; [tmp2][s3c]overlay=x='12*sin(34*PI*t+1.2)':y=2*H/5:enable='lt(mod(t+0.5,0.5),0.18)'[tmp3]; [tmp3][s4c]overlay=x='-22*sin(26*PI*t+1.9)':y=3*H/5:enable='lt(mod(t+0.7,0.6),0.22)'[tmp4]; [tmp4][s5c]overlay=x='16*sin(30*PI*t+2.3)':y=4*H/5:enable='lt(mod(t+0.9,0.7),0.20)'[tmp5]; [tmp5][s6c]overlay=x='-18*sin(28*PI*t+0.7)':y=H/5:enable='lt(mod(t+1.1,0.8),0.20)'[tmp6]; [tmp6][s7c]overlay=x='12*sin(34*PI*t+1.2)':y=2*H/5:enable='lt(mod(t+1.3,0.9),0.18)'[tmp7]; [tmp7][s8c]overlay=x='-22*sin(26*PI*t+1.9)':y=3*H/5:enable='lt(mod(t+1.5,1.0),0.22)'[tmp8]; [tmp8][s9c]overlay=x='-18*sin(28*PI*t+0.7)':y=H/5:enable='lt(mod(t+1.7,1.1),0.20)'[tmp9]; [tmp9][s10c]overlay=x='12*sin(34*PI*t+1.2)':y=2*H/5:enable='lt(mod(t+1.9,1.2),0.18)',noise=alls=18:allf=t+u[outv] " -map "[outv]" -map 0:a? -c:v libx264 -crf 18 -preset medium -c:a copy "output_random_flicker.mp4"
+=======================================================
+
+=========================== 10 strip =======================
+
+
+ffmpeg -i "test.mp4" -filter_complex "
+[0:v]setsar=1,scale=iw+40:ih+40,pad=iw+40:ih+40:20:20:black[basebig];
+
+[basebig]crop=iw-40:ih-40:
+      x='20+10*sin(2*PI*t*2)':
+      y='20+10*sin(2*PI*t*1.3)'[base_shake];
+
+[base_shake]split=11[base][s1][s2][s3][s4][s5][s6][s7][s8][s9][s10];
+
+[s1] crop=iw:ih/10:0:0,        colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s1c];
+[s2] crop=iw:ih/20:0:ih/15,    colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s2c];
+[s3] crop=iw:ih/20:0:2*ih/30,  colorchannelmixer=1:0:2:0:0:1:0:0:2:0:1:0:2:0:0:1 [s3c];
+[s4] crop=iw:ih/20:0:3*ih/10,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s4c];
+[s5] crop=iw:ih/10:0:4*ih/20,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s5c];
+[s6] crop=iw:ih/10:0:ih/20,    colorchannelmixer=1:0:2:0:0:1:0:0:2:0:1:0:2:0:0:1 [s6c];
+[s7] crop=iw:ih/20:0:ih/30,    colorchannelmixer=1:0:2:0:0:1:0:0:2:0:1:0:2:0:0:1 [s7c];
+[s8] crop=iw:ih/10:0:2*ih/15,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s8c];
+[s9] crop=iw:ih/20:0:3*ih/10,  colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s9c];
+[s10] crop=iw:ih/10:0:4*ih/22, colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:1 [s10c];
+
+[base][s1c]overlay=x='15*sin(50*PI*t)':y=0:enable='lt(mod(t*4+0.1,0.4),0.08)'[tmp1];
+[tmp1][s2c]overlay=x='-22*sin(35*PI*t+0.7)':y=H/5:enable='lt(mod(t*5+0.3,0.7),0.06)'[tmp2];
+[tmp2][s3c]overlay=x='18*sin(45*PI*t+1.2)':y=2*H/5:enable='lt(mod(t*6+0.5,0.8),0.07)'[tmp3];
+[tmp3][s4c]overlay=x='-25*sin(32*PI*t+1.9)':y=3*H/5:enable='lt(mod(t*7+0.7,0.9),0.05)'[tmp4];
+[tmp4][s5c]overlay=x='20*sin(40*PI*t+2.3)':y=4*H/5:enable='lt(mod(t*8+0.4,1.0),0.04)'[tmp5];
+[tmp5][s6c]overlay=x='-22*sin(35*PI*t+0.7)':y=H/5:enable='lt(mod(t*9+1.1,1.1),0.09)'[tmp6];
+[tmp6][s7c]overlay=x='18*sin(45*PI*t+1.2)':y=2*H/5:enable='lt(mod(t*10+1.3,1.2),0.03)'[tmp7];
+[tmp7][s8c]overlay=x='-25*sin(32*PI*t+1.9)':y=3*H/5:enable='lt(mod(t*11+1.5,1.3),0.10)'[tmp8];
+[tmp8][s9c]overlay=x='-22*sin(35*PI*t+0.7)':y=H/5:enable='lt(mod(t*12+1.7,1.4),0.02)'[tmp9];
+[tmp9][s10c]overlay=x='18*sin(45*PI*t+1.2)':y=2*H/5:enable='lt(mod(t*13+1.9,1.5),0.12)',noise=alls=20:allf=t+u[outv]
+" -map "[outv]" -map 0:a? -c:v libx264 -crf 18 -preset medium -c:a copy "output_fast_random_flicker.mp4"
+
+=======================================================
+
+=========================== 20 strip =======================
+ffmpeg -i "inptshort.mp4" -filter_complex " [0:v]setsar=1,scale=iw+40:ih+40,pad=iw+40:ih+40:20:20:black[basebig]; [basebig]crop=iw-40:ih-40: x='20+10*sin(2*PI*t*2)': y='20+10*sin(2*PI*t*1.3)'[base_shake]; [base_shake]split=21[base][s1][s2][s3][s4][s5][s6][s7][s8][s9][s10][s11][s12][s13][s14][s15][s16][s17][s18][s19][s20]; [s1] crop=iw:ih/20:0:0,           colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s1c]; [s2] crop=iw:ih/20:0:ih/15,       colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s2c]; [s3] crop=iw:ih/20:0:2*ih/30,     colorchannelmixer=1:0:0:0:0:1:0:0:1:0:0:0:0:0:0:0.5 [s3c]; [s4] crop=iw:ih/20:0:3*ih/10,     colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s4c]; [s5] crop=iw:ih/20:0:4*ih/20,     colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s5c]; [s6] crop=iw:ih/20:0:ih/20,       colorchannelmixer=1:0:0:0:0:1:0:0:1:0:0:0:0:0:0:0.5 [s6c]; [s7] crop=iw:ih/20:0:ih/30,       colorchannelmixer=1:0:0:0:0:1:0:0:1:0:0:0:0:0:0:0.5 [s7c]; [s8] crop=iw:ih/60:0:2*ih/15,     colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s8c]; [s9] crop=iw:ih/20:0:3*ih/10,     colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s9c]; [s10] crop=iw:ih/40:0:4*ih/22,    colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s10c]; [s11] crop=iw:ih/20:0:5*ih/24,    colorchannelmixer=1:0:0:0:0:1:0:0:1:0:0:0:0:0:0:0.5 [s11c]; [s12] crop=iw:ih/50:0:6*ih/26,    colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s12c]; [s13] crop=iw:ih/20:0:7*ih/28,    colorchannelmixer=1:0:0:0:0:1:0:0:1:0:0:0:0:0:0:0.5 [s13c]; [s14] crop=iw:ih/30:0:8*ih/30,    colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s14c]; [s15] crop=iw:ih/70:0:9*ih/32,    colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s15c]; [s16] crop=iw:ih/20:0:10*ih/34,   colorchannelmixer=1:0:0:0:0:1:0:0:1:0:0:0:0:0:0:0.5 [s16c]; [s17] crop=iw:ih/40:0:11*ih/36,   colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s17c]; [s18] crop=iw:ih/20:0:12*ih/38,   colorchannelmixer=1:0:0:0:0:1:0:0:1:0:0:0:0:0:0:0.5 [s18c]; [s19] crop=iw:ih/50:0:13*ih/40,   colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s19c]; [s20] crop=iw:ih/30:0:14*ih/42,   colorchannelmixer=1:0:0:0:0:1:0:0:0:0:1:0:0:0:0:0.5 [s20c]; [base][s1c]overlay=x='15*sin(10*PI*t)':y=0:enable='lt(mod(t*4+0.1,0.6),0.2)'[tmp1]; [tmp1][s2c]overlay=x='-22*sin(12*PI*t+0.7)':y=H/5:enable='lt(mod(t*5+0.3,0.7),0.2)'[tmp2]; [tmp2][s3c]overlay=x='18*sin(14*PI*t+1.2)':y=2*H/5:enable='lt(mod(t*6+0.5,0.8),0.2)'[tmp3]; [tmp3][s4c]overlay=x='-25*sin(16*PI*t+1.9)':y=3*H/5:enable='lt(mod(t*7+0.7,0.9),0.2)'[tmp4]; [tmp4][s5c]overlay=x='20*sin(18*PI*t+2.3)':y=4*H/5:enable='lt(mod(t*8+0.9,1.0),0.2)'[tmp5]; [tmp5][s6c]overlay=x='-22*sin(20*PI*t+0.7)':y=H/5:enable='lt(mod(t*9+1.1,1.1),0.2)'[tmp6]; [tmp6][s7c]overlay=x='18*sin(22*PI*t+1.2)':y=2*H/5:enable='lt(mod(t*10+1.3,1.2),0.2)'[tmp7]; [tmp7][s8c]overlay=x='-25*sin(24*PI*t+1.9)':y=3*H/5:enable='lt(mod(t*11+1.5,1.3),0.2)'[tmp8]; [tmp8][s9c]overlay=x='-22*sin(26*PI*t+0.7)':y=H/5:enable='lt(mod(t*12+1.7,1.4),0.2)'[tmp9]; [tmp9][s10c]overlay=x='18*sin(28*PI*t+1.2)':y=2*H/5:enable='lt(mod(t*13+1.9,1.5),0.2)'[tmp10]; [tmp10][s11c]overlay=x='-15*sin(30*PI*t+0.2)':y=H/6:enable='lt(mod(t*14+2.1,1.6),0.2)'[tmp11]; [tmp11][s12c]overlay=x='25*sin(32*PI*t+0.9)':y=H/4:enable='lt(mod(t*15+2.3,1.7),0.2)'[tmp12]; [tmp12][s13c]overlay=x='-18*sin(34*PI*t+1.4)':y=H/3:enable='lt(mod(t*16+2.5,1.8),0.2)'[tmp13]; [tmp13][s14c]overlay=x='30*sin(36*PI*t+2.1)':y=H/2.5:enable='lt(mod(t*17+2.7,1.9),0.2)'[tmp14]; [tmp14][s15c]overlay=x='-20*sin(38*PI*t+2.5)':y=H/2:enable='lt(mod(t*18+2.9,2.0),0.2)'[tmp15]; [tmp15][s16c]overlay=x='22*sin(40*PI*t+0.8)':y=H/1.8:enable='lt(mod(t*19+3.1,2.1),0.2)'[tmp16]; [tmp16][s17c]overlay=x='-18*sin(42*PI*t+1.3)':y=H/1.6:enable='lt(mod(t*20+3.3,2.2),0.2)'[tmp17]; [tmp17][s18c]overlay=x='25*sin(44*PI*t+2.0)':y=H/1.4:enable='lt(mod(t*21+3.5,2.3),0.2)'[tmp18]; [tmp18][s19c]overlay=x='-22*sin(46*PI*t+0.8)':y=H/1.2:enable='lt(mod(t*22+3.7,2.4),0.2)'[tmp19]; [tmp19][s20c]overlay=x='18*sin(48*PI*t+1.3)':y=H/1.1:enable='lt(mod(t*23+3.9,2.5),0.2)',noise=alls=20:allf=t+u[outv] " -map "[outv]" -map 0:a? -c:v libx264 -crf 18 -preset medium -c:a copy "output_fast_random_flicker_20_strips_slow_movement.mp4"
+
+
+
+

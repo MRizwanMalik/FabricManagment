@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">Add Fabric Order</h1>
+
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <form action="{{ url_for('add_fabric_order', client_id=client_id) }}" method="POST">
+        <div class="grid grid-cols-2 gap-4">
+           <div class="mb-4">
+                <label for="processingType" class="block text-gray-700 text-sm font-bold mb-2">Processing Type:</label>
+                <select id="processingType" name="processing_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select Processing</option>
+                    <option value="waterproof">Waterproof</option>
+                    <option value="heatproof">Heatproof</option>
+                    <option value="moom">Moom Proof</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="quality" class="block text-gray-700 text-sm font-bold mb-2">Quality:</label>
+                <input type="text" id="quality" name="quality" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="color" class="block text-gray-700 text-sm font-bold mb-2">Color:</label>
+                <input type="text" id="color" name="color" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:极line-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="processingType" class="block text-gray-700 text-sm font-bold mb-2">Processing Type:</label>
+                <select id="processingType" name="processing_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select Processing</option>
+                    <option value="waterproof">Waterproof</option>
+                    <option value="heatproof">Heatproof</option>
+                    <option value="moom">Moom Proof</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="quantityMeter" class="block text-gray-700 text-sm font-bold mb-2">Quantity (Meters):</label>
+                <input type="number" step="0.01" id="quantityMeter" name="quantity_meter" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="quantityGauze" class="block text-gray-700 text-sm font-bold mb-2">Quantity (Gauze):</label>
+                <input type="number" step="0.01" id="quantityGauze" name="quantity_gauze" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="receivingDate" class="block text-gray-700 text-sm font-bold mb-2">Receiving Date:</label>
+                <input type="date" id="receivingDate" name="receiving_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="deadline" class="block text-gray-700 text-sm font-bold mb-2">Deadline:</label>
+                <input type="date" id="deadline" name="deadline" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+        </div>
+        <div class="mb-4">
+            <label for="status" class="block text-gray-700 text-sm font-bold mb-2">Status:</label>
+            <select id="status" name="status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                <option value="pending">Pending</option>
+                <option value="in-process">In-Process</option>
+                <option value="complete">Complete</option>
+            </select>
+        </div>
+        <div class="mb-4">
+            <label for="notes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+            <textarea id="notes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+        </div>
+        <div class="flex items-center justify-end">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Add Fabric Order
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Set default dates
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('receivingDate').value = today;
+        
+        // Set deadline to 7 days from now
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + 7);
+        document.getElementById('deadline').value = deadline.toISOString().split('T')[0];
+    });
+</script>
+{% endblock %}

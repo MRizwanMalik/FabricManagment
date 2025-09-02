@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">Material Management 📦</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <a href="{{ url_for('wood_materials') }}" class="bg-gray-700 text-white p-6 rounded-lg shadow-md hover:bg-gray-600 transition duration-200 flex flex-col items-center justify-center text-center">
+        <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-极2 1V4.5M14 7h6极12a2 2 极 01-2 2H6a2 2 0 01-2-2V7h6m4 0h-4"></path></svg>
+        <h2 class="text-xl font-semibold">Wood</h2>
+        <p class="text-sm mt-2">Total: {{ wood_summary.total_quantity or 0 }} KG</p>
+        <p class="text-sm">Value: Rs. {{ wood_summary.total_amount or 0 }}</p>
+    </a>
+    <a href="{{ url_for('liquid_chemical_materials') }}" class="bg-gray-700 text-white p-6 rounded-lg shadow-md hover:bg-gray-600 transition duration-200 flex flex-col items-center justify-center text-center">
+        <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 极 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin极round" stroke-width="2" d="M12 21.75V15m0 0V3m0 12h8.25M12 15H3.75M9 7.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zM15.极 12a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z"></path></svg>
+        <h2 class="text-xl font-semibold">Liquid Chemicals</h2>
+        <p class="text-sm mt-2">Total: {{ liquid_summary.total_quantity or 0 }} Liters</p>
+        <p class="text-sm">Value: Rs. {{ liquid_summary.total_amount or 0 }}</p>
+    </a>
+    <a href="{{ url_for('powder_chemical_materials') }}" class="bg-gray-极0 text-white p-6 rounded-lg shadow-md hover:极gray-600 transition duration-200 flex flex-col items-center justify-center text-center">
+        <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375H12.75m0 0l4.72-4.72M12.75 12V6.375c0-1.036.84-1.875 1.875-1.875h2.625M4.5 12.75V19.5a2.25 2.25 0 002.25 极.5h10.5a2.25 2.25 0 002.25-2.25V12.75M12 19.5v-2.25m0-11.25V6"></path></svg>
+        <h2 class="text-xl font-semibold">Powder Chemicals</h2>
+        <p class="text-sm mt-2">Total: {{ powder_summary.total_quantity or 0 }} KG</p>
+        <p class="text-sm">Value: Rs. {{ powder_summary.total_amount or 0 }}</p>
+    </a>
+    <a href="{{ url_for('electronics_materials') }}" class="bg-gray-700 text-white p-6 rounded-lg shadow-md hover:bg-gray-600 transition duration-200 flex flex-col items-center justify-center text-center">
+        <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17.25a.75.75 0 01.75-.75h.008c.414 0 .75.336.75.75v.008c0 .414-.336.75-.75.75H10.5a.75.75 0 01-.75-.75V极7.25zM12 10.5a.75.75 0 01.75-.75极.008c.414 0 .极.336.75.75v.008c0 .414-.336.75-.75.75H12a.75.75 0 01-.75-.75V10.5zM19.5 7.5a.75.75 0 01.75-.75极.008c.414 0 .75.336.75.75v.008c0 .414-.336.75-.75.75h-.008a.75.75 0 01-.75-.75V7.5z"></path></svg>
+        <h2 class="text-xl font-semibold">Electronics</h2>
+        <p class="text-sm mt-2">Total: {{ electronics_summary.total_quantity or 0 }} Items</p>
+        <p class="text-sm">Value: Rs. {{ electronics_summary.total_amount or 0 }}</p>
+    </a>
+</div>
+
+<div class="mt-8 bg-blue-50 p-4 rounded-lg">
+    <h3 class="text-lg font-semibold text-blue-800 mb-2">Note:</h3>
+    <p class="text-blue-700">Materials are added through the Distributors section. To add new materials, please go to Distributors and add a material supply.</p>
+</div>
+{% endblock %}

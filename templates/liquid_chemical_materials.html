@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">Liquid Chemicals Stock 💧</h1>
+
+<div class="flex justify-between items-center mb-6">
+    <div class="relative">
+        <input type="text" id="liquidSearch" onkeyup="searchLiquid()" placeholder="Search by item name..." class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    </div>
+    <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-200 flex items-center space-x-2" onclick="openAddLiquidModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6极0-6h6m-6 0H6"></path></svg>
+        <span>Add New Liquid Chemical</span>
+    </button>
+</div>
+
+{% if total_liquid %}
+<div class="bg-blue-50 p-4 rounded-lg mb-6">
+    <h3 class="text-lg font-semibold text-blue-800 mb-2">Total Liquid Chemicals Summary</h3>
+    <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Quantity</p>
+            <p class="text-xl font-bold">{{ total_liquid.total_quantity or 0 }} Liters</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Amount</p>
+            <p class="text-xl font-bold">Rs. {{ total_liquid.total_amount or 0 }}</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Paid</p>
+            <p class="text-xl font-bold">Rs. {{ total_liquid.total_payment or 0 }}</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Remaining</p>
+            <p class="text-xl font-bold">Rs. {{ total_liquid.total_remaining or 0 }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200" id="liquidTable">
+        <thead>
+            <tr>
+                <th class="py-3 px-4 border-b text-left">ID</th>
+                <th class="py-3 px-4 border-b text-left">Item Name</th>
+                <th class="py-3 px-4 border-b text-left">Quantity (Liters)</th>
+                <th class="py-3 px-4 border-b text-left">Total Amount</th>
+                <th class="py-3 px-4 border-b text-left">Payment</th>
+                <th class="py-3 px-4 border-b text-left">Remaining</th>
+                <th class="py-3 px-4 border-b text-left">Date Added</th>
+                <th class="py-3 px-4 border-b text-left">Last Update</th>
+                <th class="py-3 px-4 border-b text-left">Notes</th>
+                <th class="py-3 px-4 border-b text-left">Actions</th>
+            </tr>
+        </thead>
+        <!-- In the table body section, change item_name to name -->
+    <!-- In the table body section, change item_name to name -->
+    <tbody>
+    {% for item in chemicals_stock %}
+    <tr>
+        <td class="py-2 px-4 border-b">{{ item.id }}</td>
+        <td class="py-2 px-4 border-b">{{ item.name }}</td>  <!-- Changed from item_name to name -->
+        <td class="py-2 px-4 border-b">{{ item.quantity_liter }}</td>  <!-- Changed from quantity to quantity_liter -->
+        <td class="py-2 px-4 border-b">{{ item.total_amount }}</td>
+        <td class="py-2 px-4 border-b">{{ item.payment }}</td>
+        <td class="py-2 px-4 border-b">{{ item.remaining }}</td>
+        <td class="py-2 px-4 border-b">{{ item.date_added|datetimeformat }}</td>
+        <td class="py-2 px-4 border-b">{{ item.date_updated|datetimeformat if item.date_updated else 'N/A' }}</td>
+        <td class="py-2 px-4 border-b">{{ item.notes if item.notes else 'N/A' }}</td>
+        <td class="py-2 px-4 border-b">
+            <button class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" onclick="openUsageModal({{ item.id }}, 'liquid_chemical', {{ item.quantity_liter }})">Use</button>
+            <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 ml-1" onclick="viewUsageHistory({{ item.id }}, 'liquid_chemical')">History</button>
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="10" class="py-2 px-4 text-center text-gray-500">No liquid chemicals found.</td>
+    </tr>
+    {% endfor %}
+</tbody>
+    </table>
+</div>
+
+<!-- Add Liquid Chemical Modal -->
+<div id="addLiquidModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add New Liquid Chemical</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeAddLiquidModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form action="{{ url_for('add_liquid_chemical') }}" method="POST">
+            <div class="mb-4">
+                <label for="liquidItemName" class="block text-gray-700 text-sm font-bold mb-2">Item Name:</label>
+                <input type="text" id="liquidItemName" name="item_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="liquidQuantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity (Liters):</label>
+                <input type="number" step="0.01" id="liquidQuantity极name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="liquidTotalAmount" class="block text-gray-700 text-sm font-bold mb-2">Total Amount:</label>
+                <input type="number" step="0.01" id="liquidTotalAmount" name="total_amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="liquidPayment" class="block text-gray-700 text-sm font-bold mb-2">Payment Made:</label>
+                <input type="number" step="0.01" id="liquidPayment" name="payment" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="liquidNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="liquidNotes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Add Stock
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Usage Modal -->
+<div id="usageModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Record Usage</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick极closeUsageModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-line极ap="round" stroke-linejoin="round" stroke-width="2" d="M6 极8L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="usageForm" method="POST">
+            <input type="hidden" id="usageItemId" name="item_id">
+            <input type="hidden" id="usageItemType" name="item_type">
+            <div class="mb-4">
+                <label for="usedQuantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity Used:</label>
+                <input type="number" step="0.01" id="usedQuantity" name="used_quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                <p class="text-xs text-gray-500 mt-1">Available: <span id="availableQuantity">0</span></p>
+            </div>
+            <div class="mb-4">
+                <label for="usedBy" class="block text-gray-700 text-sm font-bold mb-2">Used By:</label>
+                <input type="text" id="usedBy" name="used_by" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Person name">
+            </div>
+            <div class="mb-4">
+                <label for="usageNotes" class="block text-gray-700 text-sm font-bold mb-2">Usage Notes:</label>
+                <textarea id="usageNotes" name="notes" rows="2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <极 class="flex items-center justify-end">
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Record Usage
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Usage History Modal -->
+<div id="usageHistoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden overflow-y-auto">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-3/4 max-h-screen">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800" id="usageHistoryTitle">Usage History</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeUsageHistoryModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="usageHistoryContent">
+            <!-- Usage history will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAddLiquidModal() {
+        document.getElementById('addLiquidModal').classList.remove('hidden');
+    }
+
+    function closeAddLiquidModal() {
+        document.getElementById('addLiquidModal').classList.add('hidden');
+    }
+
+    function openUsageModal(itemId, itemType, availableQty) {
+        document.getElementById('usageItemId').value = itemId;
+        document.getElementById('usageItemType').value = itemType;
+        document.getElementById('availableQuantity').textContent = availableQty;
+        document.getElementById('usedQuantity').setAttribute('max', availableQty);
+        
+        // Set form action based on item type
+        if (itemType === 'liquid_chemical') {
+            document.getElementById('usageForm').action = `/update_liquid_chemical_usage/${itemId}`;
+        } else if (itemType === 'powder_chemical') {
+            document.getElementById('usageForm').action = `/update_powder_chemical_usage/${itemId}`;
+        } else if (itemType === 'wood') {
+            document.getElementById('usageForm').action = `/update_wood_usage/${itemId}`;
+        } else if (itemType === 'electronics') {
+            document.getElementById('usageForm').action = `/update_electronics_usage/${itemId}`;
+        }
+        
+        document.getElementById('usageModal').classList.remove('hidden');
+    }
+
+    function closeUsageModal() {
+        document.getElementById('usageModal').classList.add('hidden');
+    }
+
+    async function viewUsageHistory(itemId, itemType) {
+        const response = await fetch(`/get_usage_history/${itemType}/${itemId}`);
+        const data = await response.json();
+        
+        let content = `
+            <table class="min-w-full bg-white border border-gray-200">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border-b text-left">Date</th>
+                        <th class="py-2 px-4 border-b text-left">Quantity Used</th>
+                        <th class="py-2 px-4 border-b text-left">Used By</th>
+                        <th class="py-2 px-4 border-b text-left">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        if (data.usage_history && data.usage_history.length > 0) {
+            data.usage_history.forEach(usage => {
+                content += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${usage.date_used}</td>
+                        <td class="py-2 px-4 border-b">${usage.quantity_used}</td>
+                        <td class="py-2 px-4 border-b">${usage.used_by || 'N/A'}</td>
+                        <td class="py-2 px-4 border-b">${usage.notes || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            content += `<tr><td colspan="4" class="py-2 px-4 text-center">No usage history found.</td></tr>`;
+        }
+        
+        content += `
+                </tbody>
+            </table>
+        `;
+        
+        document.getElementById('usageHistoryTitle').textContent = `Usage History - Item ID: ${itemId}`;
+        document.getElementById('usageHistoryContent').innerHTML = content;
+        document.getElementById('usageHistoryModal').classList.remove('hidden');
+    }
+
+    function closeUsageHistoryModal() {
+        document.getElementById('usageHistoryModal').classList.add('hidden');
+    }
+
+    function searchLiquid() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("liquidSearch");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("liquidTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 1; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[1]; // Item Name
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}
