@@ -8,24 +8,34 @@ def init_db():
     cursor = conn.cursor()
 
     # Drop old tables if they exist to clean up the schema
-    cursor.execute("DROP TABLE IF EXISTS client_fabrics")
-    
+    cursor.execute("DROP TABLE IF EXISTS clients")
+    cursor.execute("DROP TABLE IF EXISTS client_payments")
+    cursor.execute("DROP TABLE IF EXISTS distributors")
+    cursor.execute("DROP TABLE IF EXISTS employees")
+    cursor.execute("DROP TABLE IF EXISTS electronics")
+    cursor.execute("DROP TABLE IF EXISTS liquid_chemicals")
+    cursor.execute("DROP TABLE IF EXISTS solid_chemicals")
+    cursor.execute("DROP TABLE IF EXISTS fabrics")
+    cursor.execute("DROP TABLE IF EXISTS material_usage_history")
+    cursor.execute("DROP TABLE IF EXISTS client_fabrics")  # This is the table from the error
+
     # Clients Table (updated)
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS clients (
+        CREATE TABLE clients (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             company_name TEXT,
             category TEXT,
             contact_no TEXT,
             status TEXT,
-            notes TEXT
+            notes TEXT,
+            product_balance REAL DEFAULT 0
         )
     ''')
-    
+
     # Client Payments Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS client_payments (
+        CREATE TABLE client_payments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             client_id INTEGER NOT NULL,
             amount REAL NOT NULL,
@@ -36,52 +46,56 @@ def init_db():
         )
     ''')
 
-    # New Client Orders Table to handle multiple orders per client
+    # Client Fabrics Table (Corrected based on the error and HTML)
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS client_orders (
+        CREATE TABLE client_fabrics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             client_id INTEGER NOT NULL,
-            order_type TEXT NOT NULL,
-            initial_quantity REAL NOT NULL,
-            current_quantity REAL NOT NULL,
+            order_type TEXT,
+            cloth_type TEXT,
+            quality TEXT,
+            quantity REAL,
             unit TEXT,
             status TEXT NOT NULL,
-            received_date TEXT NOT NULL,
+            receiving_date TEXT,
             deadline TEXT,
             notes TEXT,
             FOREIGN KEY (client_id) REFERENCES clients(id)
         )
     ''')
-    
-    # New Outgoing Fabrics table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS outgoing_fabrics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            client_id INTEGER NOT NULL,
-            order_id INTEGER NOT NULL,
-            quantity REAL NOT NULL,
-            outgoing_date TEXT NOT NULL,
-            FOREIGN KEY (client_id) REFERENCES clients(id),
-            FOREIGN KEY (order_id) REFERENCES client_orders(id)
-        )
-    ''')
 
-    # Distributors Table
+    # Other tables from your project
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS distributors (
+        CREATE TABLE distributors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             company_name TEXT,
-            category TEXT,
             contact_no TEXT,
-            status TEXT,
+            address TEXT,
             notes TEXT
         )
     ''')
-
-    # Powder Chemicals Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS powder_chemicals (
+        CREATE TABLE employees (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            contact_no TEXT,
+            joining_date TEXT,
+            address TEXT,
+            notes TEXT
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            status TEXT NOT NULL,
+            FOREIGN KEY (employee_id) REFERENCES employees(id)
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE electronics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             stock REAL NOT NULL,
@@ -90,10 +104,8 @@ def init_db():
             FOREIGN KEY (distributor_id) REFERENCES distributors(id)
         )
     ''')
-
-    # Liquid Chemicals Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS liquid_chemicals (
+        CREATE TABLE liquid_chemicals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             stock REAL NOT NULL,
@@ -102,10 +114,8 @@ def init_db():
             FOREIGN KEY (distributor_id) REFERENCES distributors(id)
         )
     ''')
-    
-    # Electronics Table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS electronics (
+        CREATE TABLE solid_chemicals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             stock REAL NOT NULL,
@@ -114,10 +124,8 @@ def init_db():
             FOREIGN KEY (distributor_id) REFERENCES distributors(id)
         )
     ''')
-
-    # Create material usage history table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS material_usage_history (
+        CREATE TABLE material_usage_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             material_type TEXT NOT NULL,
             material_id INTEGER NOT NULL,
@@ -127,7 +135,7 @@ def init_db():
             used_by TEXT
         )
     ''')
-
+    
     conn.commit()
     conn.close()
 
@@ -135,6 +143,3 @@ def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row  # This allows us to access columns by name
     return conn
-
-if __name__ == '__main__':
-    init_db()
