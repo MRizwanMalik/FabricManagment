@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">Distributor Management 🤝</h1>
+
+<div class="flex justify-between items-center mb-6">
+    <div class="relative">
+        <input type="text" id="distributorSearch" onkeyup="searchDistributors()" placeholder="Search by name or ID..." class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0极"></path></svg>
+    </div>
+    <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-200 flex items-center space-x-2" onclick="openAddDistributorModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <span>Add New Distributor</span>
+    </button>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200" id="distributorTable">
+        <thead>
+            <tr>
+                <th class="py-3 px-4 border-b text-left">Distributor ID</th>
+                <th class="py-3 px-4 border-b text-left">Distributor Name</th>
+                <th class="py-3 px-4 border-b text-left">Company</th>
+                <th class="py-3 px-4 border-b text-left">Contact</th>
+                <th class="py-3 px-4 border-b text-left">Category</th>
+                <th class="py-3 px-4 border-b text-left">Total Supply</th>
+                <th class="py-3 px-4 border-b text-left">Paid</th>
+                <th class="py-3 px-4 border-b text-left">Remaining</th>
+                <th class="py-3 px-4 border-b text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for distributor in distributors %}
+            <tr>
+                <td class="py-2 px-4 border-b">{{ distributor.id }}</td>
+                <td class="py-2 px-4 border-b">{{ distributor.name }}</td>
+                <td class="py-2 px-4 border-b">{{ distributor.company_name or 'N/A' }}</td>
+                <td class="py-2 px-4 border-b">{{ distributor.contact_no or 'N/A' }}</td>
+                <td class="py-2 px-4 border-b">{{ distributor.category }}</td>
+                <td class="py-2 px-4 border-b">{{ distributor.total_supply_amount or 0 }}</td>
+                <td class="py-2 px-4 border-b">{{ distributor.paid_cash + distributor.paid_account }}</td>
+                <td class="py-2 px-4 border-b">{{ distributor.remaining_balance or 0 }}</td>
+                <td class="py-2 px-4 border-b flex space-x-2">
+                    <button class="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600" 
+                            onclick="openEditDistributorModal({{ distributor.id }})">Edit</button>
+                    <button class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" 
+                            onclick="openAddPaymentModal({{ distributor.id }})">Payment</button>
+                    <button class="bg-purple-500 text-white px-3 py-1 rounded-md text-sm hover:bg-purple-600" 
+                            onclick="openAddSupplyModal({{ distributor.id }})">Add Supply</button>
+                    <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600" 
+                            onclick="viewDistributorDetails({{ distributor.id }})">View</button>
+                             <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600"
+            onclick="confirmDeleteDistributor({{ distributor.id }})">Delete</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="py-2 px-4 text-center text-gray-500">No distributors found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Distributor Modal -->
+<div id="addDistributorModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add New Distributor</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeAddDistributorModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form action="{{ url_for('add_distributor') }}" method="POST">
+            <div class="mb-4">
+                <label for="distributorName" class="block text-gray-700 text-sm font-bold mb-2">Distributor Name:</label>
+                <input type="text" id="distributorName" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="distributorCompany" class="block text-gray-700 text-sm font-bold mb-2">Company Name:</label>
+                <input type="text极id="distributorCompany" name="company_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="distributorCategory" class="block text-gray-700 text-sm font-bold mb-2">Category:</label>
+                <select id="distributorCategory" name="category" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select Category</option>
+                    <option value="wood">Wood</option>
+                    <option value="liquid_chemical">Liquid Chemical</option>
+                    <option value="powder_chemical">Powder Chemical</option>
+                    <option value="electronics">Electronics</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="distributorContact" class="block text-gray-极0 text-sm font-bold mb-2">Contact No:</label>
+                <input type="text" id="distributorContact" name="contact_no" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none极focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="distributorAddress" class="block text-gray-700 text-sm font-bold mb-2">Address:</label>
+                <textarea id="distributorAddress" name="address" rows="2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="mb-4">
+                <label for="distributorNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="distributorNotes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Add Distributor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Distributor Modal -->
+<div id="editDistributorModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Edit Distributor</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeEditDistributorModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="editDistributorForm" method="POST">
+            <input type="hidden" id="editDistributorId" name="distributor_id">
+            <div class="mb-4">
+                <label for="editDistributorName" class="block text-gray-700 text-sm font-bold mb-2">Distributor Name:</label>
+                <input type="text" id="editDistributorName" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="editDistributorCompany" class="block text-gray-700 text-sm font-bold mb-2">Company Name:</label>
+                <input type="text" id="editDistributorCompany" name="company_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="editDistributorCategory" class="block text-gray-700 text-sm font-bold mb-2">Category:</label>
+                <select id="editDistributorCategory" name="category" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="wood">Wood</option>
+                    <option value="liquid_chemical">Liquid Chemical</option>
+                    <option value="powder_chemical">Powder Chemical</option>
+                    <option value="electronics">Electronics</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="editDistributorContact" class="block text-gray-700 text-sm font-bold mb-2">Contact No:</label>
+                <input type="text" id="editDistributorContact" name="contact_no" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="editDistributorAddress" class="block text-gray-700 text-sm font-bold mb-2">Address:</label>
+                <textarea id="editDistributorAddress" name="address" rows="2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="极b-4">
+                <label for="editDistributorNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="editDistributorNotes" name极notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Update Distributor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Add Payment Modal -->
+<div id="addPaymentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add Payment</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeAddPaymentModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="addPaymentForm" method="POST">
+            <input type="hidden" id="paymentDistributorId" name="distributor_id">
+            <div class="mb-4">
+                <label for="paymentAmount" class="block text-gray-700 text-sm font-bold mb-2">Amount:</label>
+                <input type="number" step="0.01" id="paymentAmount" name="amount" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="paymentType" class="block text-gray-700 text-sm font-bold mb-2">Payment Type:</label>
+                <select id="paymentType" name="payment_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="cash">Cash</option>
+                    <option value="account">Account</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="paymentDate" class="block text-gray-700 text-sm font-bold mb-2">Date:</label>
+                <input type="datetime-local" id="paymentDate" name="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="paymentNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="paymentNotes" name="notes" rows="2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Record Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Supply Modal -->
+<div id="addSupplyModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/2">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add Material Supply</h3>
+            <button class="text-gray极500 hover:text-gray-700" onclick="closeAddSupplyModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="addSupplyForm" method="POST">
+            <input type="hidden" id="supplyDistributorId" name="distributor_id">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="materialType" class="block text-gray-700 text-sm font-bold mb-2">Material Type:</label>
+                    <select id="materialType" name="material_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="">Select Material Type</option>
+                        <option value="wood">Wood</option>
+                        <option value="liquid_chemical">Liquid Chemical</option>
+                        <option value="powder_chemical">Powder Chemical</option>
+                        <option value="electronics">Electronics</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="quantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity:</label>
+                    <input type="number" step="0.01" id="quantity" name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="unit" class="block text-gray-700 text-sm font-bold mb-2">Unit:</label>
+                    <select id="unit" name="unit" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="">Select Unit</option>
+                        <option value="kg">KG</option>
+                        <option value="liter">Liter</option>
+                        <option value="unit">Unit</option>
+                    </select>
+                </div>
+                // Add this to your addSupplyModal form
+                <div class="mb-4 hidden" id="chemicalNameDiv">
+                    <label for="chemicalName" class="block text-gray-700 text-sm font-bold mb-2">Chemical Name:</label>
+                    <select id="chemicalName" name="chemical_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    {% include 'chemical_names.html' %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="rate" class="block text-gray-700 text-sm font-bold mb-2">Rate:</label>
+                    <input type="number" step="0.01" id="rate" name="rate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="receivingDate" class="block text-gray-700 text-sm font-bold mb-2">Receiving Date:</label>
+                    <input type="date" id="receivingDate" name="receiving_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="supplyNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="supplyNotes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Add Supply
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Distributor Details Modal -->
+<div id="distributorDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden overflow-y-auto">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-3/4 max-h-screen">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800" id="distributorDetailsTitle">Distributor Details</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeDistributorDetailsModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="distributorDetailsContent">
+            <!-- Distributor details will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('materialType').addEventListener('change', function() {
+    const materialType = this.value;
+    const unitSelect = document.getElementById('unit');
+    const chemicalNameDiv = document.getElementById('chemicalNameDiv');
+    
+    // Set unit based on material type
+    if (materialType === 'wood' || materialType === 'powder_chemical') {
+        unitSelect.value = 'kg';
+    } else if (materialType === 'liquid_chemical') {
+        unitSelect.value = 'liter';
+    } else if (materialType === 'electronics') {
+        unitSelect.value = 'unit';
+    }
+    
+    // Show/hide chemical name field
+    if (materialType === 'liquid_chemical' || materialType === 'powder_chemical') {
+        chemicalNameDiv.classList.remove('hidden');
+    } else {
+        chemicalNameDiv.classList.add('hidden');
+    }
+});
+    function openAddDistributorModal() {
+        document.getElementById('addDistributorModal').classList.remove('hidden');
+    }
+
+    function closeAddDistributorModal() {
+        document.getElementById('addDistributorModal').classList.add('hidden');
+    }
+
+    async function openEditDistributorModal(distributorId) {
+        const response = await fetch(`/distributor/${distributorId}`);
+        const data = await response.json();
+        const distributor = data.distributor;
+        
+        document.getElementById('editDistributorId').value = distributor.id;
+        document.getElementById('editDistributorName').value = distributor.name;
+        document.getElementById('editDistributorCompany').value = distributor.company_name || '';
+        document.getElementById('editDistributorCategory').value = distributor.category;
+        document.getElementById('editDistributorContact').value = distributor.contact_no || '';
+        document.getElementById('editDistributorAddress').value = distributor.address || '';
+        document.getElementById('editDistributorNotes').value = distributor.notes || '';
+        
+        document.getElementById('editDistributorForm').action = `/update_distributor/${distributorId}`;
+        document.getElementById('editDistributorModal').classList.remove('hidden');
+    }
+
+    function closeEditDistributorModal() {
+        document.getElementById('editDistributorModal').classList.add('hidden');
+    }
+
+    function openAddPaymentModal(distributorId) {
+        document.getElementById('paymentDistributorId').value = distributorId;
+        document.getElementById('addPaymentForm').action = `/add_distributor_payment/${distributorId}`;
+        document.getElementById('paymentDate').value = new Date().toISOString().slice(0, 16);
+        document.getElementById('addPaymentModal').classList.remove('hidden');
+    }
+
+    function closeAddPaymentModal() {
+        document.getElementById('addPaymentModal').classList.add('hidden');
+    }
+
+    function openAddSupplyModal(distributorId) {
+        document.getElementById('supplyDistributorId').value = distributorId;
+        document.getElementById('addSupplyForm').action = `/add_material_supply/${distributorId}`;
+        document.getElementById('receivingDate').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('addSupplyModal').classList.remove('hidden');
+    }
+
+    function closeAddSupplyModal() {
+        document.getElementById('addSupplyModal').classList.add('hidden');
+    }
+    function confirmDeleteDistributor(distributorId) {
+    if (confirm("Kya aap is distributor ko hamesha ke liye delete karna chahte hain? Yeh action wapas nahi liya ja sakta.")) {
+        window.location.href = '/delete_distributor/' + distributorId;
+    }
+}
+
+    async function viewDistributorDetails(distributorId) {
+        const response = await fetch(`/distributor/${distributorId}`);
+        const data = await response.json();
+        const distributor = data.distributor;
+        const supplies = data.supplies;
+        const payments = data.payments;
+        
+        let content = `
+            <div class="mb-6">
+                <h4 class="text-xl font-semibold mb-2">Distributor Information</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><strong>Name:</strong> ${distributor.name}</div>
+                    <div><strong>Company:</strong> ${distributor.company_name || 'N/A'}</div>
+                    <div><strong>Contact:</strong> ${distributor.contact_no || 'N/A'}</div>
+                    <div><strong>Category:</strong> ${distributor.category}</div>
+                    <div><strong>Address:</strong> ${distributor.address || 'N/A'}</div>
+                </div>
+                <div class="mt-2"><strong>Notes:</strong> ${distributor.notes || 'N/A'}</div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="text-xl font-semibold mb-2">Material Supplies</h4>
+                <table class="min-w-full bg-white border border-gray-200 mb-4">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left">Material Type</th>
+                            <th class="py-2 px-4 border-b text-left">Quantity</th>
+                            <th class="py-2 px-4 border-b text-left">Unit</th>
+                            <th class="py-2 px-4 border-b text-left">Rate</th>
+                            <th class="py-2 px-4 border-b text-left">Total Amount</th>
+                            <th class="py-2 px-4 border-b text-left">Receiving Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (supplies && supplies.length > 0) {
+            supplies.forEach(supply => {
+                content += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${supply.material_type}</td>
+                        <td class="py-2 px-4 border-b">${supply.quantity}</td>
+                        <td class="py-2 px-4 border-b">${supply.unit}</td>
+                        <td class="py-2 px-4 border-b">${supply.rate}</td>
+                        <td class="py-2 px-4 border-b">${supply.total_amount}</td>
+                        <td class="py-2 px-4 border-b">${supply.receiving_date || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            content += `<tr><td colspan="6" class="py-2 px-4 text-center">No material supplies found.</td></tr>`;
+        }
+        
+        content += `
+                    </tbody>
+                </table>
+            </div>
+            
+            <div>
+                <h4 class="text-xl font-semibold mb-2">Payment History</h4>
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left">Date</th>
+                            <th class="py-2 px-4 border-b text-left">Amount</th>
+                            <th class="py-2 px-4 border-b text-left">Type</th>
+                            <th class="py-2 px-4 border-b text-left">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (payments && payments.length > 0) {
+            payments.forEach(payment => {
+                content += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${payment.date}</td>
+                        <td class="py-2 px-4 border-b">${payment.amount}</td>
+                        <td class="py-2 px-4 border-b">${payment.type}</td>
+                        <td class="py-2 px-4 border-b">${payment.notes || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            content += `<tr><td colspan="4" class="py-2 px-4 text-center">No payments found.</td></tr>`;
+        }
+        
+        content += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('distributorDetailsTitle').textContent = `Distributor Details - ${distributor.name}`;
+        document.getElementById('distributorDetailsContent').innerHTML = content;
+        document.getElementById('distributorDetailsModal').classList.remove('hidden');
+    }
+
+    function closeDistributorDetailsModal() {
+        document.getElementById('distributorDetailsModal').classList.add('hidden');
+    }
+
+    function searchDistributors() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("distributorSearch");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("distributorTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 1; i < tr.length; i++) { // Start from 1 to skip header row
+            td = tr[i].getElementsByTagName("td")[0]; // Distributor ID
+            td2 = tr[i].getElementsByTagName("td")[1]; // Distributor Name
+            if (td || td2) {
+                txtValue = (td ? td.textContent || td.innerText : '') + " " + (td2 ? td2.textContent || td2.innerText : '');
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}

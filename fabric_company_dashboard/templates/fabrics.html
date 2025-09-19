@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Fabric Management{% endblock %}
+
+{% block content %}
+<section class="mb-8">
+    <h2 class="text-4xl font-bold text-purple-300 mb-6">Fabric Management</h2>
+    <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+        <h3 class="text-2xl font-semibold text-gray-100 mb-4">Fabric Orders & Inventory</h3>
+        <div class="mb-4 flex space-x-4">
+            <input type="text" id="fabricSearch" onkeyup="filterFabrics()" placeholder="Search by cloth type, client name..."
+                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
+            <select id="fabricTypeFilter" onchange="filterFabrics()"
+                    class="shadow border rounded py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
+                <option value="">All Types</option>
+                {% for type in fabric_types %}
+                <option value="{{ type }}">{{ type }}</option>
+                {% endfor %}
+            </select>
+            <select id="processingFilter" onchange="filterFabrics()"
+                    class="shadow border rounded py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
+                <option value="">All Processing</option>
+                {% for type in processing_types %}
+                <option value="{{ type }}">{{ type }}</option>
+                {% endfor %}
+            </select>
+            <select id="statusFilter" onchange="filterFabrics()"
+                    class="shadow border rounded py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="In-process">In-process</option>
+                <option value="Completed">Completed</option>
+            </select>
+        </div>
+
+        <div class="overflow-x-auto bg-gray-800 rounded-lg shadow-xl">
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Order ID
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Client
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Cloth Type
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Quantity (m/g)
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Processing
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Deadline
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-700 bg-gray-700 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="fabricOrderTableBody">
+                    {% if orders %}
+                        {% for order in orders %}
+                        <tr class="hover:bg-gray-700 transition">
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <p class="text-gray-100 whitespace-no-wrap">{{ order.id }}</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <p class="text-gray-100 whitespace-no-wrap">{{ order.client.name if order.client else 'N/A' }}</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <p class="text-gray-100 whitespace-no-wrap">{{ order.product_type }} ({{ order.quality }}, {{ order.color }})</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <p class="text-gray-100 whitespace-no-wrap">{{ order.quantity_meters }}m / {{ order.quantity_gauze }}g</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <p class="text-gray-100 whitespace-no-wrap">{{ order.processing_type if order.processing_type else 'None' }}</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <span class="relative inline-block px-3 py-1 font-semibold leading-tight 
+                                {% if order.status == 'Completed' %}text-green-900{% elif order.status == 'In-process' %}text-orange-900{% else %}text-gray-900{% endif %}">
+                                    <span aria-hidden="true" class="absolute inset-0 opacity-50 rounded-full 
+                                    {% if order.status == 'Completed' %}bg-green-200{% elif order.status == 'In-process' %}bg-orange-200{% elif order.status == 'Pending' %}bg-yellow-200{% else %}bg-gray-200{% endif %}"></span>
+                                    <span class="relative">{{ order.status }}</span>
+                                </span>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <p class="text-gray-100 whitespace-no-wrap">{{ order.deadline.strftime('%Y-%m-%d') if order.deadline else 'N/A' }}</p>
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
+                                <button class="text-blue-400 hover:text-blue-300 font-bold mr-3">View Notes</button>
+                                <button class="text-yellow-400 hover:text-yellow-300 font-bold mr-3">Edit Status</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm text-center text-gray-400">No fabric orders found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<script>
+    function filterFabrics() {
+        var searchInput = document.getElementById("fabricSearch");
+        var typeFilter = document.getElementById("fabricTypeFilter");
+        var processingFilter = document.getElementById("processingFilter");
+        var statusFilter = document.getElementById("statusFilter");
+
+        var searchVal = searchInput.value.toUpperCase();
+        var typeVal = typeFilter.value.toUpperCase();
+        var processingVal = processingFilter.value.toUpperCase();
+        var statusVal = statusFilter.value.toUpperCase();
+
+        var tableBody = document.getElementById("fabricOrderTableBody");
+        var rows = tableBody.getElementsByTagName("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var clientName = row.getElementsByTagName("td")[1].textContent || row.getElementsByTagName("td")[1].innerText;
+            var clothType = row.getElementsByTagName("td")[2].textContent || row.getElementsByTagName("td")[2].innerText;
+            var processing = row.getElementsByTagName("td")[4].textContent || row.getElementsByTagName("td")[4].innerText;
+            var status = row.getElementsByTagName("td")[5].getElementsByTagName("span")[1].textContent || row.getElementsByTagName("td")[5].getElementsByTagName("span")[1].innerText;
+
+            var showRow = true;
+
+            // Search filter
+            if (searchVal && !(clientName.toUpperCase().indexOf(searchVal) > -1 || clothType.toUpperCase().indexOf(searchVal) > -1)) {
+                showRow = false;
+            }
+
+            // Type filter
+            if (typeVal && clothType.toUpperCase().indexOf(typeVal) === -1) {
+                showRow = false;
+            }
+
+            // Processing filter
+            if (processingVal && processing.toUpperCase().indexOf(processingVal) === -1) {
+                showRow = false;
+            }
+
+            // Status filter
+            if (statusVal && status.toUpperCase().indexOf(statusVal) === -1) {
+                showRow = false;
+            }
+
+            if (showRow) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        }
+    }
+</script>
+{% endblock %}

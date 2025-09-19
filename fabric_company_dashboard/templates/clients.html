@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block title %}Client Management{% endblock %}
+{% block header %}Client Management{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-lg">
+    <div class="flex justify-between items-center mb-6">
+        <div class="relative w-1/3">
+            <input type="text" placeholder="Search by name or ID..." class="w-full pl-10 pr-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+        <button class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition duration-300">
+            <i class="fas fa-plus mr-2"></i>Add New Client
+        </button>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-gray-600">
+            <thead class="bg-gray-50 text-sm uppercase">
+                <tr>
+                    <th class="p-4">Client ID</th>
+                    <th class="p-4">Name</th>
+                    <th class="p-4">Fabric</th>
+                    <th class="p-4">Quantity</th>
+                    <th class="p-4">Advanced</th>
+                    <th class="p-4">Remaining</th>
+                    <th class="p-4">Received Date</th>
+                    <th class="p-4">End Date</th>
+                    <th class="p-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for client in clients %}
+                <tr class="hover:bg-gray-50 cursor-pointer">
+                    <td class="p-4 font-medium">{{ client.id }}</td>
+                    <td class="p-4">{{ client.name }}</td>
+                    <td class="p-4">{{ client.fabric }}</td>
+                    <td class="p-4">{{ client.quantity }}</td>
+                    <td class="p-4 text-green-600">{{ client.advanced }}</td>
+                    <td class="p-4 text-red-600">{{ client.remaining }}</td>
+                    <td class="p-4">{{ client.received_date }}</td>
+                    <td class="p-4">{{ client.end_date }}</td>
+                    <td class="p-4">
+                        <button class="text-blue-500 hover:text-blue-700 mr-2"><i class="fas fa-edit"></i></button>
+                        <button class="text-green-500 hover:text-green-700"><i class="fas fa-file-invoice"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

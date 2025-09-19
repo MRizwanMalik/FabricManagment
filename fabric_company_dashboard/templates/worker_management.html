@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">Worker Management 👷</h1>
+
+<div class="flex justify-between items-center mb-6">
+    <div class="relative">
+        <input type="text" id="workerSearch" onkeyup="searchWorkers()" placeholder="Search by name or ID..." class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    </div>
+    <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-200 flex items-center space-x-2" onclick="openAddWorkerModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <span>Add New Worker</span>
+    </button>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200" id="workerTable">
+        <thead>
+            <tr>
+                <th class="py-3 px-4 border-b text-left">Worker ID</th>
+                <th class="py-3 px-4 border-b text-left">Name</th>
+                <th class="py-3 px-4 border-b text-left">Contact No</th>
+                <th class="py-3 px-4 border-b text-left">Total Salary</th>
+                <th class="py-3 px-4 border-b text-left">Advance Salary</th>
+                <th class="py-3 px-4 border-b text-left">Remaining Salary</th>
+                <th class="py-3 px-4 border-b text-left">Bonus</th>
+                <th class="py-3 px-4 border-b text-left">Joining Date</th>
+                <th class="py-3 px-4 border-b text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for worker in workers %}
+            <tr class="hover:bg-gray-50">
+                <td class="py-2 px-4 border-b">{{ worker.id }}</td>
+                <td class="py-2 px-4 border-b">{{ worker.name }}</td>
+                <td class="py-2 px-4 border-b">{{ worker.contact_no }}</td>
+                <td class="py-2 px-4 border-b">{{ worker.total_salary }}</td>
+                <td class="py-2 px-4 border-b">{{ worker.advance_salary }}</td>
+                <td class="py-2 px-4 border-b">{{ worker.remaining_salary }}</td>
+                <td class="py-2 px-4 border-b">{{ worker.bonus }}</td>
+                <td class="py-2 px-4 border-b">{{ worker.joining_date }}</td>
+                <td class="py-2 px-4 border-b">
+                    <button class="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600" 
+                            onclick="openEditWorkerModal({{ worker.id }}, '{{ worker.name }}', '{{ worker.contact_no }}', {{ worker.total_salary }}, {{ worker.advance_salary }}, {{ worker.bonus }})">
+                        Edit
+                    </button>
+                    <button class="bg-purple-500 text-white px-3 py-1 rounded-md text-sm hover:bg-purple-600 ml-2" 
+                            onclick="markAttendance({{ worker.id }}, '{{ worker.name }}')">
+                        Attendance
+                    </button>
+                    <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 ml-2" 
+                            onclick="confirmDeleteWorker({{ worker.id }})">
+                         Delete
+    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="py-2 px-4 text-center text-gray-500">No workers found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Worker Modal -->
+<div id="addWorkerModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add New Worker</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeAddWorkerModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form action="{{ url_for('add_worker') }}" method="POST">
+            <div class="mb-4">
+                <label for="workerName" class="block text-gray-700 text-sm font-bold mb-2">Worker Name:</label>
+                <input type="text" id="workerName" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="workerContact" class="block text-gray-700 text-sm font-bold mb-2">Contact No:</label>
+                <input type="text" id="workerContact" name="contact_no" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="workerTotalSalary" class="block text-gray-700 text-sm font-bold mb-2">Total Salary:</label>
+                <input type="number" step="0.01" id="workerTotalSalary" name="total_salary" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="workerAdvanceSalary" class="block text-gray-700 text-sm font-bold mb-2">Advance Salary:</label>
+                <input type="number" step="0.01" id="workerAdvanceSalary" name="advance_salary" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="workerBonus" class="block text-gray-700 text-sm font-bold mb-2">Bonus:</label>
+                <input type="number" step="0.01" id="workerBonus" name="bonus" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Add Worker
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Worker Modal -->
+<div id="editWorkerModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Edit Worker</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeEditWorkerModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="editWorkerForm" method="POST">
+            <input type="hidden" id="editWorkerId" name="worker_id">
+            <div class="mb-4">
+                <label for="editWorkerName" class="block text-gray-700 text-sm font-bold mb-2">Worker Name:</label>
+                <input type="text" id="editWorkerName" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="editWorkerContact" class="block text-gray-700 text-sm font-bold mb-极">Contact No:</label>
+                <input type="text" id="editWorkerContact" name="contact_no" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus极shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="editWorkerTotalSalary" class="block text-gray-700 text-sm font-bold mb-2">Total Salary:</label>
+                <input type="number" step="0.01" id="editWorkerTotalSalary" name="total_salary" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="editWorkerAdvanceSalary" class="block text-gray-700 text-sm font-bold mb-2">Advance Salary:</label>
+                <input type="number" step="0.01" id="editWorkerAdvanceSalary" name="advance_salary" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="editWorkerBonus" class="block text-gray-700 text-sm font-bold mb-2">Bonus:</label>
+                <input type="number" step="0.01" id="editWorkerBonus" name="bonus" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Update Worker
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddWorkerModal() {
+        document.getElementById('addWorkerModal').classList.remove('hidden');
+    }
+
+    function closeAddWorkerModal() {
+        document.getElementById('addWorkerModal').classList.add('hidden');
+    }
+
+    function openEditWorkerModal(id, name, contact, totalSalary, advanceSalary, bonus) {
+        document.getElementById('editWorkerId').value = id;
+        document.getElementById('editWorkerName').value = name;
+        document.getElementById('editWorkerContact').value = contact;
+        document.getElementById('editWorkerTotalSalary').value = totalSalary;
+        document.getElementById('editWorkerAdvanceSalary').value = advanceSalary;
+        document.getElementById('editWorkerBonus').value = bonus;
+        
+        // Set the form action correctly
+        document.getElementById('editWorkerForm').action = "/update_worker/" + id;
+        
+        document.getElementById('editWorkerModal').classList.remove('hidden');
+    }
+
+    function closeEditWorkerModal() {
+        document.getElementById('editWorkerModal').classList.add('hidden');
+    }
+    function confirmDeleteWorker(workerId) {
+    if (confirm("Are you sure you want to permanently delete this worker? This action cannot be undone.")) {
+        window.location.href = '/delete_worker/' + workerId;
+    }
+}
+
+    function searchWorkers() {
+        var input = document.getElementById("workerSearch");
+        var filter = input.value.toUpperCase();
+        var table = document.getElementById("workerTable");
+        var tr = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < tr.length; i++) {
+            var td = tr[i].getElementsByTagName("td")[0];
+            var td2 = tr[i].getElementsByTagName("td")[1];
+            if (td || td2) {
+                var txtValue = (td ? td.textContent || td.innerText : '') + " " + (td2 ? td2.textContent || td2.innerText : '');
+                tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+    }
+
+    function markAttendance(workerId, workerName) {
+        const today = new Date().toISOString().slice(0, 10);
+        const status = prompt(`Mark attendance for ${workerName} (${today}):\nEnter "P" for Present, "A" for Absent, "L" for Leave`);
+        
+        if (status && ['P', 'A', 'L'].includes(status.toUpperCase())) {
+            const statusMap = { 'P': 'Present', 'A': 'Absent', 'L': 'Leave' };
+            const formData = new FormData();
+            formData.append('worker_id', workerId);
+            formData.append('date', today);
+            formData.append('status', statusMap[status.toUpperCase()]);
+            
+            fetch('/mark_attendance', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    alert('Attendance marked successfully!');
+                    window.location.reload();
+                } else {
+                    alert('Error marking attendance');
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

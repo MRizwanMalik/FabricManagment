@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
+<p class="text-gray-600 mb-6">"In the name of Allah, the Most Gracious, the Most Merciful."</p>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Upcoming Deadlines 📅</h2>
+        <table class="min-w-full bg-white">
+            <thead>
+                <tr>
+                    <th class="py-2 px-4 border-b">Client</th>
+                    <th class="py-2 px-4 border-b">Product</th>
+                    <th class="py-2 px-4 border-b">Status</th>
+                    <th class="py-2 px-4 border-b">Deadline</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in deadline_clients %}
+                <tr>
+                    <td class="py-2 px-4 border-b">{{ client.name }}</td>
+                    <td class="py-2 px-4 border-b">{{ client.cloth_type }}</td>
+                    <td class="py-2 px-4 border-b">{{ client.status }}</td>
+                    <td class="py-2 px-4 border-b text-red-500 font-medium">{{ client.deadline|datetimeformat }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="py-2 px-4 text-center text-gray-500">No approaching deadlines.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-md col-span-2">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Orders Overview 📈</h2>
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <canvas id="ordersLineChart"></canvas>
+            </div>
+            <div>
+                <canvas id="materialBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-blue-500 text-white p-6 rounded-lg shadow-md cursor-pointer hover:bg-blue-600 transition duration-200" onclick="openInProgressModal()">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold">In Progress Work 🚀</h2>
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <p class="mt-2 text-sm">Click to view details of ongoing projects.</p>
+    </div>
+
+     <div class="bg-yellow-500 text-white p-6 rounded-lg shadow-md cursor-pointer hover:bg-yellow-600 transition duration-200" onclick="openDeadlineAlertModal()">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold">Deadline Alerts! ⏰</h2>
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+        </div>
+        <p class="mt-2 text-sm">Click to see clients with deadlines in 3 days.</p>
+    </div>
+
+<div id="inProgressModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-3/4 max-h-screen overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">In Progress Orders</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeInProgressModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+                <tr>
+                    <th class="py-2 px-4 border-b text-left">Client Name</th>
+                    <th class="py-2 px-4 border-b text-left">Product Type</th>
+                    <th class="py-2 px-4 border-b text-left">Quantity (Meter)</th>
+                    <th class="py-2 px-4 border-b text-left">Quantity (Gauze)</th>
+                    <th class="py-2 px-4 border-b text-left">Receiving Date</th>
+                    <th class="py-2 px-4 border-b text-left">Deadline</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in inprogress_orders %}
+                <tr>
+                    <td class="py-2 px-4 border-b">{{ order.name }}</td>
+                    <td class="py-2 px-4 border-b">{{ order.cloth_type }}</td>
+                    <td class="py-2 px-4 border-b">{{ order.quantity_meter }}</td>
+                    <td class="py-2 px-4 border-b">{{ order.quantity_gauze }}</td>
+                    <td class="py-2 px-4 border-b">{{ order.receiving_date|datetimeformat }}</td>
+                    <td class="py-2 px-4 border-b">{{ order.deadline|datetimeformat }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="py-2 px-4 text-center text-gray-500">No in-progress orders.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="deadlineAlertModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-3/4 max-h-screen overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Clients with Upcoming Deadlines (within 3 days)</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeDeadlineAlertModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+                <tr>
+                    <th class="py-2 px-4 border-b text-left">Client Name</th>
+                    <th class="py-2 px-4 border-b text-left">Product Type</th>
+                    <th class="py-2 px-4 border-b text-left">Status</th>
+                    <th class="py-2 px-4 border-b text-left">Deadline</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in deadline_clients %}
+                <tr>
+                    <td class="py-2 px-4 border-b">{{ client.name }}</td>
+                    <td class="py-2 px-4 border-b">{{ client.cloth_type }}</td>
+                    <td class="py-2 px-4 border-b">{{ client.status }}</td>
+                    <td class="py-2 px-4 border-b text-red-500 font-medium">{{ client.deadline|datetimeformat }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="py-2 px-4 text-center text-gray-500">No deadlines within 3 days.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Add this button to your dashboard grid
+    <div class="bg-green-500 text-white p-6 rounded-lg shadow-md cursor-pointer hover:bg-green-600 transition duration-200" onclick="openCostCalculatorModal()">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold">Cost Calculator 🧮</h2>
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11极.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+        </div>
+        <p class="mt-2 text-sm">Click to calculate production costs.</p>
+    </div>
+</div>
+
+<!-- Add Cost Calculator Modal -->
+<!-- Update the cost calculator modal section -->
+<div id="costCalculatorModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/2 max-h-screen overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Production Cost Calculator</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeCostCalculatorModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="mb-4">
+                <label for="chemicalType" class="block text-gray-700 text-sm font-bold mb-2">Chemical Type:</label>
+                <select id="chemicalType" onchange="updateChemicalOptions()" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Select Chemical Type</option>
+                    <option value="liquid">Liquid Chemical</option>
+                    <option value="powder">Powder Chemical</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="chemicalName" class="block text-gray-700 text-sm font-bold mb-2">Chemical Name:</label>
+                <select id="chemicalName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">Select Chemical First</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="chemicalQuantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity:</label>
+                <input type="number" step="0.01" id="chemicalQuantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                <p class="text-xs text-gray-500 mt-1" id="quantityUnit">Unit will appear here</p>
+            </div>
+            <div class="mb-4">
+                <label for="chemicalRate" class="block text-gray-700 text-sm font-bold mb-2">Rate:</label>
+                <input type="number" step="0.01" id="chemicalRate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+                <p class="text-xs text-gray-500 mt-1" id="rateUnit">Rate per unit</p>
+            </div>
+            <div class="mb-4">
+                <label for="woodQuantity" class="block text-gray-700 text-sm font-bold mb-2">Wood Quantity (KG):</label>
+                <input type="number" step="0.01" id="woodQuantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="woodRate" class="block text-gray-700 text-sm font-bold mb-2">Wood Rate (Per KG):</label>
+                <input type="number" step="0.01" id="woodRate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none极focus:shadow-outline" value="100">
+            </div>
+            <div class="mb-4">
+                <label for="electricityHours" class="block text-gray-700 text-sm font-bold mb-2">Electricity (Hours):</label>
+                <input type="number" step="0.1" id="electricityHours" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="electricityRate" class="block text-gray-700极text-sm font-bold mb-2">Electricity Rate (Per Hour):</label>
+                <input type="number" step="0.01" id="electricityRate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="25">
+            </div>
+            <div class="mb-4">
+                <label for="laborDays" class="block text-gray-700 text-sm font-bold mb-2">Labor (Days):</label>
+                <input type="number" step="0.5" id="laborDays" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="laborRate" class="block text-gray-700 text-sm font-bold mb-2">Labor Rate (Per Day):</label>
+                <input type="number" step="0.01" id="laborRate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="1500">
+            </div>
+            <div class="mb-4 col-span-2">
+                <label for="extraExpenditure" class="block text-gray-700 text-sm font-bold mb-2">Extra Expenditure:</label>
+                <input type="number" step="0.01" id="extraExpenditure" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0">
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <button onclick="calculateCost()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                Calculate Total Cost
+            </button>
+        </div>
+        
+        <div id="costResult" class="bg-gray-100 p-4 rounded-lg hidden">
+            <h4 class="text-lg font-semibold mb-2">Cost Breakdown</h4>
+            <div class="grid grid-cols-2 gap-2">
+                <div>Chemical Cost:</div>
+                <div id="chemicalCost" class="text-right">Rs. 0.00</div>
+                <div>Wood Cost:</div>
+                <div id="woodCost" class="text-right">Rs. 0.00</div>
+                <div>Electricity Cost:</div>
+                <div id="electricityCost" class="text-right">Rs. 0.00</div>
+                <div>Labor Cost:</div>
+                <div id="laborCost" class="text-right">Rs. 0.00</div>
+                <div>Extra Expenditure:</div>
+                <div id="extraExpenditureCost" class="text-right">Rs. 0.00</div>
+                <div class="font-bold mt-2 border-t pt-2">Total Cost:</div>
+                <div id="totalCost" class="text-right font-bold mt极2 border-t pt-2">Rs. 0.00</div>
+            </div>
+        </div>
+    </div>
+</div>
+<script> -->
+function openCostCalculatorModal() {
+    document.getElementById('costCalculatorModal').classList.remove('hidden');
+}
+
+function closeCostCalculatorModal() {
+    document.getElementById('costCalculatorModal').classList.add('hidden');
+}
+
+function updateChemicalOptions() {
+    const chemicalType = document.getElementById('chemicalType').value;
+    const chemicalNameSelect = document.getElementById('chemicalName');
+    
+    // Clear existing options
+    chemicalNameSelect.innerHTML = '';
+    
+    if (chemicalType === 'liquid') {
+        // Add liquid chemical options
+        const liquidOptions = [
+            'Acid', 'Bleach', 'Dye', 'Softener', 'Fixer', 
+            'Waterproofing Agent', 'Heatproofing Agent', 'Other'
+        ];
+        
+        liquidOptions.forEach(option => {
+            const opt = document.createElement('option');
+            opt.value = option.toLowerCase();
+            opt.textContent = option;
+            chemicalNameSelect.appendChild(opt);
+        });
+        
+        // Update unit labels
+        document.getElementById('quantityUnit').textContent = 'Liters';
+        document.getElementById('rateUnit').textContent = 'Rate per liter';
+        
+    } else if (chemicalType === 'powder') {
+        // Add powder chemical options
+        const powderOptions = [
+            'Bleaching Powder', 'Soda Ash', 'Caustic Soda', 'Detergent Powder',
+            'Softening Powder', 'Fixer Powder', 'Other Powder'
+        ];
+        
+        powderOptions.forEach(option => {
+            const opt = document.createElement('option');
+            opt.value = option.toLowerCase().replace(/\s+/g, '_');
+            opt.textContent = option;
+            chemicalNameSelect.appendChild(opt);
+        });
+        
+        // Update unit labels
+        document.getElementById('quantityUnit').textContent = 'Kilograms';
+        document.getElementById('rateUnit').textContent = 'Rate per kg';
+    } else {
+        // Default empty state
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Select Chemical First';
+        chemicalNameSelect.appendChild(opt);
+        
+        document.getElementById('quantityUnit').textContent = 'Unit will appear here';
+        document.getElementById('rateUnit').textContent = 'Rate per unit';
+    }
+}
+
+function calculateCost() {
+    // Get values from inputs
+    const chemicalQuantity = parseFloat(document.getElementById('chemicalQuantity').value) || 0;
+    const chemicalRate = parseFloat(document.getElementById('chemicalRate').value) || 0;
+    const woodQuantity = parseFloat(document.getElementById('woodQuantity').value) || 0;
+    const woodRate = parseFloat(document.getElementById('woodRate').value) || 100;
+    const electricityHours = parseFloat(document.getElementById('electricityHours').value) || 0;
+    const electricityRate = parseFloat(document.getElementById('electricityRate').value) || 25;
+    const laborDays = parseFloat(document.getElementById('laborDays').value) || 0;
+    const laborRate = parseFloat(document.getElementById('laborRate').value) || 1500;
+    const extraExpenditure = parseFloat(document.getElementById('extraExpenditure').value) || 0;
+    
+    // Calculate costs
+    const chemicalCost = chemicalQuantity * chemicalRate;
+    const woodCost = woodQuantity * woodRate;
+    const electricityCost = electricityHours * electricityRate;
+    const laborCost = laborDays * laborRate;
+    
+    const totalCost = chemicalCost + woodCost + electricityCost + laborCost + extraExpenditure;
+    
+    // Display results
+    document.getElementById('chemicalCost').textContent = `Rs. ${chemicalCost.toFixed(2)}`;
+    document.getElementById('woodCost').textContent = `Rs. ${woodCost.toFixed(2)}`;
+    document.getElementById('electricity极st').textContent = `Rs. ${electricityCost.toFixed(2)}`;
+    document.getElementById('laborCost').textContent = `Rs. ${laborCost.toFixed(2)}`;
+    document.getElementById('extraExpenditureCost').textContent = `Rs. ${extraExpenditure.toFixed(2)}`;
+    document.getElementById('totalCost').textContent = `Rs. ${totalCost.toFixed(2)}`;
+    
+    document.getElementById('costResult').classList.remove('hidden');
+}
+</script>
+<script>
+    // Chart.js for Orders Line Graph
+    document.addEventListener('DOMContentLoaded', function() {
+        const ordersChartElem = document.getElementById('ordersLineChart');
+        if (ordersChartElem) {
+            const ordersCtx = ordersChartElem.getContext('2d');
+            new Chart(ordersCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ orders_data.labels | tojson }},
+                    datasets: [{
+                        label: 'Orders per Month',
+                        data: {{ orders_data.data | tojson }},
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Monthly Orders'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart.js for Raw Material Bar Graph
+        const materialChartElem = document.getElementById('materialBarChart');
+        if (materialChartElem) {
+            const materialCtx = materialChartElem.getContext('2d');
+            new Chart(materialCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ material_data.labels | tojson }},
+                    datasets: [{
+                        label: 'Raw Material Stock (Wood - kg)',
+                        data: {{ material_data.data | tojson }},
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Raw Material Stock'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    function openInProgressModal() {
+        document.getElementById('inProgressModal').classList.remove('hidden');
+    }
+
+    function closeInProgressModal() {
+        document.getElementById('inProgressModal').classList.add('hidden');
+    }
+
+    function openDeadlineAlertModal() {
+        document.getElementById('deadlineAlertModal').classList.remove('hidden');
+    }
+
+    function closeDeadlineAlertModal() {
+        document.getElementById('deadlineAlertModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

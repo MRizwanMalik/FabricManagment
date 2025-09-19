@@ -1,0 +1,37 @@
+<!-- wood_materials_section.html -->
+<div class="flex justify-between items-center mb-6">
+    <div class="relative">
+        <input type="text" id="woodSearch" onkeyup="searchWood()" placeholder="Search by distributor name or ID..." class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    </div>
+</div>
+
+{% if total_wood %}
+<div class="bg-blue-50 p-4 rounded-lg mb-6">
+    <h3 class="text-lg font-semibold text-blue-800 mb-2">Total Wood Summary</h3>
+    <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Quantity</p>
+            <p class="text-xl font-bold">{{ total_wood.total_quantity or 0 }} KG</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Amount</p>
+            <p class="text-xl font-bold">Rs. {{ total_wood.total_amount or 0 }}</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Paid</p>
+            <p class="text-xl font-bold">Rs. {{ total_wood.total_payment or 0 }}</p>
+        </div>
+        <div class="bg-white p-3 rounded shadow">
+            <p class="text-sm text-gray-600">Total Remaining</p>
+            <p class="text-xl font-bold">Rs. {{ total_wood.total_remaining or 0 }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200" id="woodTable">
+        <!-- Table content same as before -->
+    </table>
+</div>

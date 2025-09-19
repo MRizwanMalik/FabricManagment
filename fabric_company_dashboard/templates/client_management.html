@@ -1,0 +1,704 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-gray-800 mb-8">Client Management 🤝</h1>
+
+<div class="flex justify-between items-center mb-6">
+    <div class="relative">
+        <input type="text" id="clientSearch" onkeyup="searchClients()" placeholder="Search by name or ID..." class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    </div>
+    <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md transition duration-200 flex items-center space-x-2" onclick="openAddClientModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <span>Add New Client</span>
+    </button>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200" id="clientTable">
+        <thead>
+            <tr>
+                <th class="py-3 px-4 border-b text-left">Client ID</th>
+                <th class="py-3 px-4 border-b text-left">Client Name</th>
+                <th class="py-3 px-4 border-b text-left">Company</th>
+                <th class="py-3 px-4 border-b text-left">Contact</th>
+                <th class="py-3 px-4 border-b text-left">Total Balance</th>
+                <th class="py-3 px-4 border-b text-left">Paid</th>
+                <th class="py-3 px-4 border-b text-left">Remaining</th>
+                <th class="py-3 px-4 border-b text-left">Status</th>
+                <th class="py-3 px-4 border-b text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr>
+                <td class="py-2 px-4 border-b">{{ client.id }}</td>
+                <td class="py-2 px-4 border-b">{{ client.name }}</td>
+                <td class="py-2 px-4 border-b">{{ client.company_name or 'N/A' }}</td>
+                <td class="py-2 px-4 border-b">{{ client.contact_no or 'N/A' }}</td>
+                <td class="py-2 px-4 border-b">{{ client.product_balance }}</td>
+                <td class="py-2 px-4 border-b">{{ client.received_cash + client.received_account }}</td>
+                <td class="py-2 px-4 border-b">{{ client.product_balance - (client.received_cash + client.received_account) }}</td>
+                <td class="py-2 px-4 border-b">
+                    <span class="px-2 py-1 text-xs rounded-full 
+                        {% if client.status == 'complete' %}bg-green-100 text-green-800
+                        {% elif client.status == 'in-process' %}bg-yellow-100 text-yellow-800
+                        {% elif client.status == 'pending' %}bg-blue-100 text-blue-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ client.status }}
+                    </span>
+                    <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10 hidden" id="actions-menu-{{ client.id }}" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-{{ client.id }}" tabindex="-1">
+            <div class="py-1" role="none">
+                <button class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" onclick="openEditClientModal({{ client.id }}); hideMenu({{ client.id }})">Edit</button>
+                <button class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" onclick="openAddPaymentModal({{ client.id }}); hideMenu({{ client.id }})">Payment</button>
+                <button class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" onclick="openAddFabricModal({{ client.id }}); hideMenu({{ client.id }})">Add Fabric</button>
+                <button class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" onclick="openOutgoingFabricModal({{ client.id }}); hideMenu({{ client.id }})">Outgoing Fabric</button>
+            
+            
+                <button class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" onclick="viewClientDetails({{ client.id }}); hideMenu({{ client.id }})">View Details</button>
+                <button class="text-gray-700 block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" onclick="generateInvoice({{ client.id }}); hideMenu({{ client.id }})">Generate Invoice</button>
+            </div>
+        </div>
+                </td>
+                <td class="py-2 px-4 border-b flex space-x-2">
+                    
+                    
+                    
+    <div class="relative inline-block text-left">
+        <button type="button" class="inline-flex justify-center w-full rounded-md px-3 py-1 bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500" id="menu-button-{{ client.id }}" aria-expanded="true" aria-haspopup="true" onclick="toggleMenu({{ client.id }})">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+            </svg>
+        </button>
+        
+        
+    </div>
+
+                    
+                    
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="py-2 px-4 text-center text-gray-500">No clients found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Client Modal -->
+<div id="addClientModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add New Client</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeAddClientModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form action="{{ url_for('add_client') }}" method="POST">
+            <div class="mb-4">
+                <label for="clientName" class="block text-gray-700 text-sm font-bold mb-2">Client Name:</label>
+                <input type="text" id="clientName" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="companyName" class="block text-gray-700 text-sm font-bold mb-2">Company Name:</label>
+                <input type="text" id="companyName" name="company_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="clientCategory" class="block text-gray-700 text-sm font-bold mb-2">Client Category:</label>
+                <p class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100">
+                    Fabric
+                </p>
+            </div>
+            <div class="mb-4">
+    <label for="contactNo" class="block text-gray-700 text-sm font-bold mb-2">Contact No:</label>
+    <input type="text" id="contactNo" name="contact_no"
+           placeholder="03000000000"
+           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+</div>
+            <div class="mb-4">
+                <label for="initialBalance" class="block text-gray-700 text-sm font-bold mb-2">Initial Balance:</label>
+                <input type="number" step="0.01" id="initialBalance" name="product_balance" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="0" required>
+            </div>
+            <div class="mb-4">
+                <label for="clientStatus" class="block text-gray-700 text-sm font-bold mb-2">Status:</label>
+                <select id="clientStatus" name="status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="pending">Pending</option>
+                    <option value="in-process">In-Process</option>
+                    <option value="complete">Complete</option>
+                    <option value="untouch">Untouch</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="clientNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="clientNotes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Add Client
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Client Modal -->
+<div id="editClientModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Edit Client</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeEditClientModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="editClientForm" method="POST">
+            <input type="hidden" id="editClientId" name="client_id">
+            <div class="mb-4">
+                <label for="editClientName" class="block text-gray-700 text-sm font-bold mb-2">Client Name:</label>
+                <input type="text" id="editClientName" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="editCompanyName" class="block text-gray-700 text-sm font-bold mb-2">Company Name:</label>
+                <input type="text" id="editCompanyName" name="company_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="editClientCategory" class="block text-gray-700 text-sm font-bold mb-2">Client Category:</label>
+                <select id="editClientCategory" name="category" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="Fabric">Fabric</option>
+                    <option value="Wood">Wood</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Raw Material">Raw Material</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="editContactNo" class="block text-gray-700 text-sm font-bold mb-2">Contact No:</label>
+                <input type="text" id="editContactNo" name="contact_no" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="editClientStatus" class="block text-gray-700 text-sm font-bold mb-2">Status:</label>
+                <select id="editClientStatus" name="status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="pending">Pending</option>
+                    <option value="in-process">In-Process</option>
+                    <option value="complete">Complete</option>
+                    <option value="untouch">Untouch</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="editClientNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="editClientNotes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Update Client
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Payment Modal -->
+<!-- Add Payment Modal -->
+<div id="addPaymentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add Payment</h3>
+            <!-- Correct Close Function -->
+            <button class="text-gray-500 hover:text-gray-700" onclick="closePaymentModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <form id="addPaymentForm" method="POST">
+            <input type="hidden" id="paymentClientId" name="client_id">
+
+            <div class="mb-4">
+                <label for="paymentAmount" class="block text-gray-700 text-sm font-bold mb-2">Amount:</label>
+                <input type="number" step="0.01" id="paymentAmount" name="amount"
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="paymentType" class="block text-gray-700 text-sm font-bold mb-2">Payment Type:</label>
+                <select id="paymentType" name="payment_type"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="cash">Cash</option>
+                    <option value="account">Account</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="paymentDate" class="block text-gray-700 text-sm font-bold mb-2">Date:</label>
+                <input type="datetime-local" id="paymentDate" name="date"
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="paymentNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="paymentNotes" name="notes" rows="2"
+                          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-2">
+                <!-- Cancel Button -->
+                <button type="button" onclick="closePaymentModal()"
+                        class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+                </button>
+
+                <!-- Submit -->
+                <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Record Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+function openPaymentModal(clientId) {
+    document.getElementById("paymentClientId").value = clientId;
+    document.getElementById("addPaymentModal").classList.remove("hidden");
+}
+
+function closePaymentModal() {
+    document.getElementById("addPaymentModal").classList.add("hidden");
+}
+</script>
+
+<!-- Add Fabric Order Modal -->
+<div id="addFabricModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/2">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Add Fabric Order</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeAddFabricModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 极 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="addFabricForm" method="POST">
+            <input type="hidden" id="fabricClientId" name="client_id">
+            <div class="grid grid-cols-2 gap-4">
+               <div class="mb-4">
+                    <label for="cloth_type" class="block text-gray-700 text-sm font-bold mb-2">Cloth Type:</label>
+                    <select id="cloth_type" name="cloth_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="">Select Cloth Type</option>
+                        <option value="waterproof">PC</option>
+                        <option value="waterproof">Canvas</option>
+                        <option value="heatproof">Latha</option>
+                        <option value="moom">Duck</option>
+                        <option value="other">Jean</option>
+                        <option value="moom">Cotton</option>
+                        <option value="other">Dasuli</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="quality" class="block text-gray-700 text-sm font-bold mb-2">Quality:</label>
+                    <input type="text" id="quality" name="quality" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label for="color" class="block text-gray-700 text-sm font-bold mb-2">Color:</label>
+                    <input type="text" id="color" name="color" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                <label for="processingType" class="block text-gray-700 text-sm font-bold mb-2">Processing Type:</label>
+                <select id="processingType" name="processing_type" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select Processing</option>
+                    <option value="waterproof">Waterproof</option>
+                    <option value="heatproof">Heatproof</option>
+                    <option value="moom">Moom Proof</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+                
+                <div class="mb-4">
+                    <label for="quantityGauze" class="block text-gray-700 text-sm font-bold mb-2">Quantity (Gauze):</label>
+                    <input type="number" step="0.01" id="quantityGauze" name="quantity_gauze" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading极ight focus:outline-none focus:shadow-outline" value="0">
+                </div>
+                <div class="mb-4">
+                    <label for="receivingDate" class="block text-gray-700 text-sm font-bold mb-2">Receiving Date:</label>
+                    <input type="date" id="receivingDate" name="receiving_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="deadline" class="block text-gray-700 text-sm font-bold mb-2">Deadline:</label>
+                    <input type="date" id="deadline" name="deadline" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus极shadow-outline" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="fabricStatus" class="block text-gray-700 text-sm font-bold mb-2">Status:</label>
+                <select id="fabricStatus" name="status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="pending">Pending</option>
+                    <option value="in-process">In-Process</option>
+                    <option value="complete">Complete</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="fabricNotes" class="block text-gray-700 text-sm font-bold mb-2">Notes:</label>
+                <textarea id="fabricNotes" name="notes" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Add Fabric Order
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Client Details Modal -->
+<div id="clientDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden overflow-y-auto">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-3/4 max-h-screen">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800" id="clientDetailsTitle">Client Details</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeClientDetailsModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="clientDetailsContent">
+            <!-- Client details will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Modal -->
+<div id="invoiceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden overflow-y-auto">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-3/4 max-h-screen">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Client Invoice</h3>
+            <div class="flex space-x-2">
+                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="printInvoice()">
+                    Print
+                </button>
+                <button class="bg-green-500 hover:极g-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="downloadInvoice()">
+                    Download
+                </button>
+                <button class="text-gray-500 hover:text-gray-700" onclick="closeInvoiceModal()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="invoiceContent" class="p-4 border rounded-lg">
+            <!-- Invoice content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAddClientModal() {
+        document.getElementById('addClientModal').classList.remove('hidden');
+    }
+
+    function closeAddClientModal() {
+        document.getElementById('addClientModal').classList.add('hidden');
+    }
+
+    async function openEditClientModal(clientId) {
+        const response = await fetch(`/client/${clientId}`);
+        const data = await response.json();
+        const client = data.client;
+        
+        document.getElementById('editClientId').value = client.id;
+        document.getElementById('editClientName').value = client.name;
+        document.getElementById('editCompanyName').value = client.company_name || '';
+        document.getElementById('editClientCategory').value = client.category;
+        document.getElementById('editContactNo').value = client.contact_no || '';
+        document.getElementById('editClientStatus').value = client.status;
+        document.getElementById('editClientNotes').value = client.notes || '';
+        
+        document.getElementById('editClientForm').action = `/update_client/${clientId}`;
+        document.getElementById('editClientModal').classList.remove('hidden');
+    }
+
+    function closeEditClientModal() {
+        document.getElementById('editClientModal').classList.add('hidden');
+    }
+
+    function openAddPaymentModal(clientId) {
+        document.getElementById('paymentClientId').value = clientId;
+        document.getElementById('addPaymentForm').action = `/add_client_payment/${clientId}`;
+        document.getElementById('paymentDate').value = new Date().toISOString().slice(0, 16);
+        document.getElementById('addPaymentModal').classList.remove('hidden');
+    }
+
+    function closeAddPaymentModal() {
+        document.getElementById('addPaymentModal').classList.add('hidden');
+    }
+
+    function openAddFabricModal(clientId) {
+        document.getElementById('fabricClientId').value = clientId;
+        document.getElementById('addFabricForm').action = `/add_fabric_order/${clientId}`;
+        document.getElementById('receivingDate').value = new Date().toISOString().slice(0, 10);
+        
+        // Set deadline to 7 days from now
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + 7);
+        document.getElementById('deadline').value = deadline.toISOString().slice(0, 10);
+        
+        document.getElementById('addFabricModal').classList.remove('hidden');
+    }
+
+    function closeAddFabricModal() {
+        document.getElementById('addFabricModal').classList.add('hidden');
+    }
+
+    async function viewClientDetails(clientId) {
+        const response = await fetch(`/client/${clientId}`);
+        const data = await response.json();
+        const client = data.client;
+        const fabrics = data.fabrics;
+        const payments = data.payments;
+        
+        let content = `
+            <div class="mb-6">
+                <h4 class="text-xl font-semibold mb-2">Client Information</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><strong>Name:</strong> ${client.name}</div>
+                    <div><strong>Company:</strong> ${client.company_name || 'N/A'}</div>
+                    <div><strong>Contact:</strong> ${client.contact_no || 'N/A'}</div>
+                    <div><strong>Category:</strong> ${client.category}</div>
+                    <div><strong>Status:</strong> ${client.status}</div>
+                    <div><strong>Balance:</strong> ${client.product_balance}</div>
+                </div>
+                <div class="mt-2"><strong>Notes:</strong> ${client.notes || 'N/A'}</div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="text-xl font-semibold mb-2">Fabric Orders</h4>
+                <table class="min-w-full bg-white border border-gray-200 mb-4">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left">Cloth Type</th>
+                            <th class="py-2 px-4 border-b text-left">Quality</th>
+                            <th class="py-2 px-4 border-b text-left">Color</th>
+                            <th class="py-2 px-4 border-b text-left">Quantity (M)</th>
+                            <th class="py-2 px-4 border-b text-left">Quantity (G)</th>
+                            <th class="py-2 px-4 border-b text-left">Processing</th>
+                            <th class="py-2 px-4 border-b text-left">Receiving Date</th>
+                            <th class="py-2 px-4 border-b text-left">Deadline</th>
+                            <th class="py-2 px-4 border-b text-left">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (fabrics && fabrics.length > 0) {
+            fabrics.forEach(fabric => {
+                content += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${fabric.cloth_type}</td>
+                        <td class="py-2 px-4 border-b">${fabric.quality || 'N/A'}</td>
+                        <td class="py-2 px-4 border-b">${fabric.color || 'N/A'}</td>
+                        <td class="py-2 px-4 border-b">${fabric.quantity_meter || '0'}</td>
+                        <td class="py-2 px-4 border-b">${fabric.quantity_gauze || '0'}</td>
+                        <td class="py-2 px-4 border-b">${fabric.processing_type || 'N/A'}</td>
+                        <td class="py-2 px-4 border-b">${fabric.receiving_date || 'N/A'}</td>
+                        <td class="py-2 px-4 border-b">${fabric.deadline || 'N/A'}</td>
+                        <td class="py-2 px-4 border-b">${fabric.status}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            content += `<tr><td colspan="9" class="py-2 px-4 text-center">No fabric orders found.</td></tr>`;
+        }
+        
+        content += `
+                    </tbody>
+                </table>
+            </div>
+            
+            <div>
+                <h4 class="text-xl font-semibold mb-2">Payment History</h4>
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b text-left">Date</th>
+                            <th class="py-2 px-4 border-b text-left">Amount</th>
+                            <th class="py-2 px-4 border-b text-left">Type</th>
+                            <th class="py-2 px-4 border-b text-left">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (payments && payments.length > 0) {
+            payments.forEach(payment => {
+                content += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${payment.date}</td>
+                        <td class="py-2 px-4 border-b">${payment.amount}</td>
+                        <td class="py-2 px-4 border-b">${payment.type}</td>
+                        <td class="py-2 px-4 border-b">${payment.notes || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            content += `<tr><td colspan="4" class="py-2 px-4 text-center">No payments found.</td></tr>`;
+        }
+        
+        content += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('clientDetailsTitle').textContent = `Client Details - ${client.name}`;
+        document.getElementById('clientDetailsContent').innerHTML = content;
+        document.getElementById('clientDetailsModal').classList.remove('hidden');
+    }
+
+    function closeClientDetailsModal() {
+        document.getElementById('clientDetailsModal').classList.add('hidden');
+    }
+
+    async function generateInvoice(clientId) {
+        const response = await fetch(`/generate_invoice/${clientId}`);
+        const invoiceHtml = await response.text();
+        
+        document.getElementById('invoiceContent').innerHTML = invoiceHtml;
+        document.getElementById('invoiceModal').classList.remove('hidden');
+    }
+
+    function closeInvoiceModal() {
+        document.getElementById('invoiceModal').classList.add('hidden');
+    }
+
+    function printInvoice() {
+        const printContent = document.getElementById('invoiceContent').innerHTML;
+        const originalContent = document.body.innerHTML;
+        
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+        
+        // Re-attach event listeners if needed
+        window.location.reload();
+    }
+
+    function downloadInvoice() {
+        const invoiceContent = document.getElementById('invoiceContent').innerHTML;
+        const blob = new Blob([invoiceContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice_${new Date().toISOString().slice(0,10)}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function searchClients() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("clientSearch");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("clientTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 1; i < tr.length; i++) { // Start from 1 to skip header row
+            td = tr[i].getElementsByTagName("td")[0]; // Client ID
+            td2 = tr[i].getElementsByTagName("td")[1]; // Client Name
+            if (td || td2) {
+                txtValue = (td ? td.textContent || td.innerText : '') + " " + (td2 ? td2.textContent || td2.innerText : '');
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+<div id="outgoingFabricModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-1/3">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Outgoing Fabric</h3>
+            <button class="text-gray-500 hover:text-gray-700" onclick="closeOutgoingFabricModal()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form id="outgoingFabricForm" method="POST">
+            <input type="hidden" id="outgoingClientId" name="client_id">
+            <div class="mb-4">
+                <label for="outgoingFabricType" class="block text-gray-700 text-sm font-bold mb-2">Select Fabric:</label>
+                <select id="outgoingFabricType" name="fabric_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <option value="">Select a fabric...</option>
+                    {% for fabric in client_fabrics %}
+                        <option value="{{ fabric.id }}" data-client-id="{{ fabric.client_id }}">
+                            {{ fabric.cloth_type }} ({{ fabric.quantity_meter }}m remaining)
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="outgoingQuantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity (Meters):</label>
+                <input type="number" step="0.01" id="outgoingQuantity" name="quantity" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="recipientName" class="block text-gray-700 text-sm font-bold mb-2">Recipient Name:</label>
+                <input type="text" id="recipientName" name="recipient_name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="destinationCity" class="block text-gray-700 text-sm font-bold mb-2">Destination City:</label>
+                <input type="text" id="destinationCity" name="destination_city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="flex items-center justify-end">
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Record Outgoing
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function openOutgoingFabricModal(clientId) {
+    document.getElementById("outgoingClientId").value = clientId;
+    document.getElementById("outgoingFabricModal").classList.remove("hidden");
+}
+
+function closeOutgoingFabricModal() {
+    document.getElementById("outgoingFabricModal").classList.add("hidden");
+}
+</script>
+<script>
+    function toggleMenu(clientId) {
+        const menu = document.getElementById(`actions-menu-${clientId}`);
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+        }
+    }
+    function hideMenu(clientId) {
+        const menu = document.getElementById(`actions-menu-${clientId}`);
+        menu.classList.add('hidden');
+    }
+    
+    function openOutgoingFabricModal(clientId) {
+    // Set the hidden input field with the client ID
+    document.getElementById('outgoingClientId').value = clientId;
+
+    // Filter the fabric dropdown to show only fabrics for the selected client
+    const fabricSelect = document.getElementById('outgoingFabricType');
+    for (let i = 0; i < fabricSelect.options.length; i++) {
+        const option = fabricSelect.options[i];
+        if (option.dataset.clientId === clientId.toString() || option.value === "") {
+            option.style.display = 'block';
+        } else {
+            option.style.display = 'none';
+        }
+    }
+    fabricSelect.value = ""; // Reset dropdown to default
+
+    // Set the form action URL with the client ID using JavaScript
+    document.getElementById('outgoingFabricForm').action = `/add_outgoing_fabric/${clientId}`;
+
+    // Show the modal
+    document.getElementById('outgoingFabricModal').classList.remove('hidden');
+}
+</script>
+{% endblock %}
